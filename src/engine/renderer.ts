@@ -65,6 +65,10 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
       ctx.beginPath();
       ctx.ellipse(px + 16, py + 19, 11, 7, 0, 0, Math.PI * 2);
       ctx.fill();
+
+      if (state.player.tools.pickaxeLevel <= 0) {
+        drawLockIcon(ctx, px + 16, py + 9);
+      }
     }
 
     ctx.fillStyle = COLORS.hitLabel;
@@ -87,6 +91,17 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   ctx.beginPath();
   ctx.arc(p.px + p.facing.x * 10, p.py + p.facing.y * 10, 3, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawLockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  ctx.strokeStyle = 'rgba(15,15,15,0.85)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(cx, cy - 2, 3, Math.PI, 0);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(15,15,15,0.85)';
+  ctx.fillRect(cx - 4, cy - 1, 8, 6);
 }
 
 function drawBuilding(ctx: CanvasRenderingContext2D, px: number, py: number, kind: BuildingKind): void {

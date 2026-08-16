@@ -8,7 +8,7 @@ Juego 2D de gestión/mazmorra (aldea + dungeon runs), inspirado libremente en Lo
 - Movimiento libre en píxeles (no tile-a-tile): WASD combina ejes y normaliza diagonales, podés quedarte a mitad de dos tiles. Colisión círculo-vs-tile resuelta por eje (sub-pasos) contra nodos de recursos y edificios, con deslizamiento contra obstáculos.
 - Nodos de recursos (árboles/rocas) con golpes limitados; mientras estés en contacto con uno, se resuelve un golpe cada ~450ms. El yield por golpe escala con el nivel de herramienta (1 + nivel), con bonus al agotar el nodo. Al agotarse, el nodo deja de bloquear el paso y desaparece sin indicador visual; a los 60s reaparece solo, en un tile libre distinto al original (nunca en el mismo lugar), además del respawn parcial al volver de la mazmorra.
 - Edificios: clickeás un tile vacío del grid → panel lateral para elegir qué construir (spatial building, no menú abstracto). Taller (habilita crafteo) y Choza (decorativa, placeholder de población futura). Los edificios bloquean el paso como obstáculo sólido.
-- Craft (estilo Minecraft): sin herramienta gathereás "a mano" (tier Mano). Con un Taller construido, en el panel lateral se craftea Hacha y Pico en progresión Mano → Madera → Piedra (cada tier sube el yield de gathering). También hay 3 slots de armadura (Casco/Pechera/Botas) con la misma progresión de materiales, que suman Defensa y reducen el daño recibido en la mazmorra (con piso de 1 de daño). El tier actual de cada herramienta/pieza se ve en un hotbar debajo del canvas, separado del panel de crafteo que sigue al costado.
+- Craft (estilo Minecraft): los árboles se cortan a mano sin herramienta. Las rocas están bloqueadas hasta craftear al menos un Pico de Madera (tocarlas sin pico no hace nada). Con un Taller construido, en el panel lateral se craftea Hacha y Pico en progresión Mano → Madera → Piedra (cada tier sube el yield de gathering). También hay 3 slots de armadura (Casco/Pechera/Botas) con la misma progresión de materiales, que suman Defensa y reducen el daño recibido en la mazmorra (con piso de 1 de daño). El tier actual de cada herramienta/pieza se ve en un hotbar debajo del canvas, separado del panel de crafteo que sigue al costado.
 - Mazmorra: botón "Entrar a la mazmorra" desde la aldea. Escena separada, combate 100% automático (sin control del personaje), resuelto por números con log visual. 3 tipos de enemigo (gelatina/bandido/lobo), 5 encuentros por run, ~50% winrate con stats base.
 - Muerte en mazmorra: conservás 50% del botín acumulado en esa run.
 - Al volver de la mazmorra (victoria o derrota), se repuebla ~30% de los nodos de recursos agotados.
@@ -45,6 +45,10 @@ src/
   ui/            HUD (panel lateral: inventario/craft/build panel en aldea, combat log en mazmorra) + hotbar (tiers de herramientas/armadura sobre el canvas)
   types/         tipos compartidos
 ```
+
+## Git
+
+El repo ya está versionado (remote `git@github.com:giannidona/wanderhold.git`) y algo en tu Cowork/Desktop auto-commitea los cambios de esta carpeta a medida que se van haciendo — no hace falta pedir el commit a mano, ya queda historial por feature. Vos hacés el `git push`/sync desde tu lado cuando quieras.
 
 ## Pendiente de definir
 

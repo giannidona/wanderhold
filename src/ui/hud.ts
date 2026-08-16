@@ -37,7 +37,7 @@ function renderVillageHud(state: GameState): string {
     </div>
     <div class="hud-section">
       <h2>Controles</h2>
-      <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol o roca para recolectar. Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
+      <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol o roca para recolectar.${state.player.tools.pickaxeLevel <= 0 ? ' Las rocas están bloqueadas hasta que craftees un Pico de Madera.' : ''} Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
     </div>
   `;
 }

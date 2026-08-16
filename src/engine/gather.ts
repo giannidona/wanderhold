@@ -7,11 +7,19 @@ const GATHER_RADIUS = PLAYER_RADIUS + 4;
 
 const lastGatherAt = new Map<string, number>();
 
+function canGather(state: GameState, nodeKind: 'wood' | 'stone'): boolean {
+  // Los árboles se cortan a mano. La piedra necesita al menos un pico de madera.
+  if (nodeKind === 'stone') return state.player.tools.pickaxeLevel > 0;
+  return true;
+}
+
 // Con movimiento libre ya no hay "bump" discreto: mientras el jugador esté
-// en contacto con un nodo, se resuelve un golpe cada GATHER_COOLDOWN_MS.
+// en contacto con un nodo (y tenga la herramienta necesaria), se resuelve
+// un golpe cada GATHER_COOLDOWN_MS.
 export function tickGathering(state: GameState, now: number): void {
   for (const node of state.village.resourceNodes) {
     if (node.hitsRemaining <= 0) continue;
+    if (!canGather(state, node.kind)) continue;
 
     const touching = circleRectOverlap(state.player.px, state.player.py, GATHER_RADIUS, tileRect(node.x, node.y, TILE_SIZE));
     if (!touching) continue;
