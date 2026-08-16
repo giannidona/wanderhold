@@ -50,6 +50,7 @@ body {
 }
 
 #village-canvas {
+  display: block;
   background: #222;
   border: 2px solid #3a3d45;
   border-radius: 4px;
@@ -213,6 +214,73 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.canvas-wrap {
+  position: relative;
+}
+
+.dungeon-result {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 14, 0.6);
+  border-radius: 4px;
+}
+
+.dungeon-result.is-visible {
+  display: flex;
+}
+
+.dungeon-result-card {
+  background: #1d1f26;
+  border: 1px solid #34363f;
+  border-radius: 10px;
+  padding: 26px 32px;
+  text-align: center;
+  min-width: 240px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.result-title {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.result-title--win {
+  color: #7fd88f;
+}
+
+.result-title--lose {
+  color: #e08b7d;
+}
+
+.result-subtitle {
+  margin: 0 0 18px;
+  font-size: 0.85rem;
+  color: #a3a7b0;
+}
+
+.result-loot {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.result-loot-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #c7cad1;
+}
+
+.result-loot-item strong {
+  font-size: 1.15rem;
+  color: #eae6da;
 }
 
 .hotbar {

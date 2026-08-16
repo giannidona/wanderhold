@@ -2,7 +2,7 @@ import type { GameState } from '../types';
 import { generateEnemyQueue } from './enemies';
 import { totalDefense } from '../state/craft';
 
-const DEFEAT_LOOT_RETENTION = 0.5;
+export const DEFEAT_LOOT_RETENTION = 0.5;
 const NODE_RESPAWN_RATIO = 0.3;
 
 export function enterDungeon(state: GameState): void {
@@ -23,6 +23,8 @@ export function enterDungeon(state: GameState): void {
   };
 }
 
+// Se llama cuando el jugador clickea "Volver a la aldea" en la pantalla de
+// resultado (ya no hay retorno automático por tiempo).
 export function exitDungeon(state: GameState): void {
   const run = state.dungeon;
   if (!run) {

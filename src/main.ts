@@ -3,26 +3,30 @@ import { setupCanvas } from './engine/renderer';
 import { startGameLoop } from './engine/loop';
 import { renderHud } from './ui/hud';
 import { renderHotbar } from './ui/hotbar';
+import { renderDungeonResult } from './ui/dungeonResult';
 import { state, subscribe, notify } from './state/store';
-import { enterDungeon } from './dungeon';
+import { enterDungeon, exitDungeon } from './dungeon';
 import { isTileFree } from './state/village';
 import { placeBuilding } from './state/buildings';
 import { craftArmor, craftTool, type ArmorSlot, type ToolKind } from './state/craft';
 import { circleRectOverlap, tileRect } from './engine/collision';
+import { saveGame } from './state/save';
 import { PLAYER_RADIUS, TILE_SIZE } from './constants';
 import type { BuildingKind } from './types';
 
 const canvasEl = document.querySelector<HTMLCanvasElement>('#village-canvas');
 const hudEl = document.querySelector<HTMLElement>('#hud');
 const hotbarEl = document.querySelector<HTMLElement>('#hotbar');
+const dungeonResultEl = document.querySelector<HTMLElement>('#dungeon-result');
 
-if (!canvasEl || !hudEl || !hotbarEl) {
-  throw new Error('Faltan elementos base en el DOM (#village-canvas / #hud / #hotbar).');
+if (!canvasEl || !hudEl || !hotbarEl || !dungeonResultEl) {
+  throw new Error('Faltan elementos base en el DOM (#village-canvas / #hud / #hotbar / #dungeon-result).');
 }
 
 const canvas: HTMLCanvasElement = canvasEl;
 const hud: HTMLElement = hudEl;
 const hotbar: HTMLElement = hotbarEl;
+const dungeonResult: HTMLElement = dungeonResultEl;
 
 setupCanvas(canvas, state.village.gridSize);
 const ctx = canvas.getContext('2d');
@@ -34,6 +38,7 @@ if (!ctx) {
 function draw(): void {
   renderHud(hud, state);
   renderHotbar(hotbar, state);
+  renderDungeonResult(dungeonResult, state);
 }
 
 canvas.addEventListener('click', (e) => {
@@ -91,6 +96,15 @@ hud.addEventListener('click', (e) => {
   if (craftArmorBtn) {
     const slot = craftArmorBtn.dataset.craftArmor as ArmorSlot;
     craftArmor(state, slot);
+    notify();
+  }
+});
+
+dungeonResult.addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+  if (target.id === 'return-to-village-btn') {
+    exitDungeon(state);
+    saveGame(state);
     notify();
   }
 });
