@@ -33,6 +33,7 @@ export function createInitialVillage(
         y,
         hitsRemaining: maxHits,
         maxHits,
+        respawnAt: null,
       });
       placed++;
     }
@@ -52,8 +53,9 @@ export function findBuildingAt(village: VillageState, x: number, y: number): Bui
   return village.buildings.find((b) => b.x === x && b.y === y);
 }
 
-export function isTileEmpty(village: VillageState, x: number, y: number, player: { x: number; y: number }): boolean {
-  if (x === player.x && y === player.y) return false;
+// Libre de nodo/edificio. La ocupación del jugador (que ahora se mueve libre,
+// no por tile) se chequea aparte con colisión círculo-rect en el caller.
+export function isTileFree(village: VillageState, x: number, y: number): boolean {
   if (findNodeAt(village, x, y)) return false;
   if (findBuildingAt(village, x, y)) return false;
   return true;

@@ -208,3 +208,74 @@ body {
   color: #8b8f98;
   margin-top: 2px;
 }
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hotbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #1d1f26;
+  border: 1px solid #2c2f38;
+  border-radius: 8px;
+}
+
+.hotbar-group {
+  display: flex;
+  gap: 8px;
+}
+
+.hotbar-divider {
+  width: 1px;
+  align-self: stretch;
+  background: #2c2f38;
+}
+
+.hotbar-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  background: #23252d;
+  border: 1px solid #34363f;
+}
+
+.hotbar-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.hotbar-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hotbar-tier {
+  font-size: 0.6rem;
+  color: #8b8f98;
+  line-height: 1;
+}
+
+.hotbar-slot.tier-0 {
+  color: #6a6d75;
+}
+
+.hotbar-slot.tier-1 {
+  color: #c98a4b;
+  border-color: #6b4226;
+}
+
+.hotbar-slot.tier-2 {
+  color: #b7bcc4;
+  border-color: #7a7a7a;
+}

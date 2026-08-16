@@ -1,5 +1,7 @@
 import type { BuildingKind, GameState, TilePos } from '../types';
-import { isTileEmpty } from './village';
+import { isTileFree } from './village';
+import { circleRectOverlap, tileRect } from '../engine/collision';
+import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
 
 export interface BuildingCost {
   wood: number;
@@ -39,7 +41,15 @@ export function canAfford(state: GameState, cost: BuildingCost): boolean {
 }
 
 export function placeBuilding(state: GameState, tile: TilePos, kind: BuildingKind): boolean {
-  if (!isTileEmpty(state.village, tile.x, tile.y, state.player)) return false;
+  if (!isTileFree(state.village, tile.x, tile.y)) return false;
+
+  const playerOnTile = circleRectOverlap(
+    state.player.px,
+    state.player.py,
+    PLAYER_RADIUS,
+    tileRect(tile.x, tile.y, TILE_SIZE)
+  );
+  if (playerOnTile) return false;
 
   const def = getBuildingDef(kind);
   if (!canAfford(state, def.cost)) return false;

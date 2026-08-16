@@ -1,5 +1,6 @@
 import type { GameState } from '../types';
 import { generateEnemyQueue } from './enemies';
+import { totalDefense } from '../state/craft';
 
 const DEFEAT_LOOT_RETENTION = 0.5;
 const NODE_RESPAWN_RATIO = 0.3;
@@ -14,6 +15,7 @@ export function enterDungeon(state: GameState): void {
     playerHp: state.player.combat.maxHp,
     playerMaxHp: state.player.combat.maxHp,
     playerAttack: state.player.combat.attack,
+    playerDefense: totalDefense(state),
     lootWood: 0,
     lootStone: 0,
     log: [{ id: 0, text: 'Entrás a la mazmorra...' }],
@@ -46,6 +48,9 @@ function respawnResourceNodes(state: GameState): void {
     if (depleted.length === 0) break;
     const idx = Math.floor(Math.random() * depleted.length);
     const node = depleted.splice(idx, 1)[0];
-    if (node) node.hitsRemaining = node.maxHits;
+    if (node) {
+      node.hitsRemaining = node.maxHits;
+      node.respawnAt = null;
+    }
   }
 }

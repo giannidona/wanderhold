@@ -35,8 +35,9 @@ export function tickCombat(run: DungeonRunState): void {
     return;
   }
 
-  run.playerHp -= enemy.attack;
-  pushLog(run, `${enemy.label} te golpea por ${enemy.attack} (${Math.max(run.playerHp, 0)}/${run.playerMaxHp} HP).`);
+  const damage = Math.max(1, enemy.attack - run.playerDefense);
+  run.playerHp -= damage;
+  pushLog(run, `${enemy.label} te golpea por ${damage} (${Math.max(run.playerHp, 0)}/${run.playerMaxHp} HP).`);
 
   if (run.playerHp <= 0) {
     run.outcome = 'defeat';

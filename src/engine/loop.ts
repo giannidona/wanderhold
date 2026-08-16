@@ -1,33 +1,43 @@
 import { state, notify } from '../state/store';
-import { getActiveDirection, initInput } from './input';
-import { tryMove } from './movement';
+import { getMovementVector, initInput } from './input';
+import { updatePlayerMovement } from './movement';
+import { tickGathering } from './gather';
+import { tickResourceRegen } from './regen';
 import { render } from './renderer';
 import { saveGame } from '../state/save';
 import { renderDungeon } from '../dungeon/renderer';
 import { tickCombat } from '../dungeon/combat';
 import { exitDungeon } from '../dungeon';
 
-const MOVE_COOLDOWN_MS = 140;
 const AUTOSAVE_INTERVAL_MS = 3000;
 const COMBAT_TICK_MS = 700;
 const RETURN_DELAY_MS = 1500;
+const MAX_DT_SECONDS = 0.05;
 
 export function startGameLoop(ctx: CanvasRenderingContext2D): void {
   initInput();
 
-  let lastMoveTime = 0;
+  let lastTime = 0;
   let lastSaveTime = 0;
   let lastCombatTime = 0;
   let outcomeAt = 0;
 
   function frame(time: number): void {
+    const dt = lastTime ? Math.min((time - lastTime) / 1000, MAX_DT_SECONDS) : 0;
+    lastTime = time;
+
     if (state.scene === 'village') {
-      const dir = getActiveDirection();
-      if (dir && time - lastMoveTime > MOVE_COOLDOWN_MS) {
-        const result = tryMove(state, dir);
-        if (result !== 'blocked') notify();
-        lastMoveTime = time;
+      const moveVec = getMovementVector();
+      updatePlayerMovement(state, moveVec, dt);
+
+      const woodBefore = state.inventory.wood;
+      const stoneBefore = state.inventory.stone;
+      tickGathering(state, time);
+      if (state.inventory.wood !== woodBefore || state.inventory.stone !== stoneBefore) {
+        notify();
       }
+
+      tickResourceRegen(state, time);
 
       if (time - lastSaveTime > AUTOSAVE_INTERVAL_MS) {
         saveGame(state);

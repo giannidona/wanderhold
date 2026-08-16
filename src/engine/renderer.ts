@@ -1,6 +1,7 @@
-import type { BuildingKind, Direction, GameState } from '../types';
+import type { BuildingKind, GameState } from '../types';
+import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
 
-export const TILE_SIZE = 32;
+export { TILE_SIZE };
 
 const COLORS = {
   grass: '#3d6b35',
@@ -17,13 +18,6 @@ const COLORS = {
   hut: '#5a4a6b',
   hutRoof: '#8f7ab5',
   pendingTile: 'rgba(224, 179, 77, 0.35)',
-};
-
-const FACING_DELTA: Record<Direction, { x: number; y: number }> = {
-  up: { x: 0, y: -1 },
-  down: { x: 0, y: 1 },
-  left: { x: -1, y: 0 },
-  right: { x: 1, y: 0 },
 };
 
 export function setupCanvas(canvas: HTMLCanvasElement, gridSize: number): void {
@@ -83,18 +77,15 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   }
 
   const p = state.player;
-  const cx = p.x * TILE_SIZE + TILE_SIZE / 2;
-  const cy = p.y * TILE_SIZE + TILE_SIZE / 2;
 
   ctx.fillStyle = COLORS.player;
   ctx.beginPath();
-  ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+  ctx.arc(p.px, p.py, PLAYER_RADIUS, 0, Math.PI * 2);
   ctx.fill();
 
-  const fd = FACING_DELTA[p.facing];
   ctx.fillStyle = COLORS.playerFacing;
   ctx.beginPath();
-  ctx.arc(cx + fd.x * 10, cy + fd.y * 10, 3, 0, Math.PI * 2);
+  ctx.arc(p.px + p.facing.x * 10, p.py + p.facing.y * 10, 3, 0, Math.PI * 2);
   ctx.fill();
 }
 

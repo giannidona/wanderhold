@@ -1,61 +1,101 @@
-import type { GameState } from '../types';
+import type { ArmorSlotKind, GameState } from '../types';
 import { hasWorkshop } from './buildings';
 
 export type ToolKind = 'axe' | 'pickaxe';
+export type ArmorSlot = ArmorSlotKind;
 
-interface CraftDef {
-  tool: ToolKind;
-  label: string;
-  baseCost: { wood: number; stone: number };
-  maxLevel: number;
+export interface TierCost {
+  wood: number;
+  stone: number;
 }
 
-const CRAFT_DEFS: CraftDef[] = [
-  { tool: 'axe', label: 'Hacha', baseCost: { wood: 5, stone: 3 }, maxLevel: 3 },
-  { tool: 'pickaxe', label: 'Pico', baseCost: { wood: 3, stone: 5 }, maxLevel: 3 },
+export interface ToolTierDef {
+  level: number;
+  label: string;
+  cost: TierCost | null;
+}
+
+export interface ArmorTierDef extends ToolTierDef {
+  defense: number;
+}
+
+// Progresión estilo Minecraft: Mano (sin herramienta) -> Madera -> Piedra.
+// Para sumar Hierro/Diamante más adelante alcanza con agregar una fila acá.
+export const TOOL_TIERS: ToolTierDef[] = [
+  { level: 0, label: 'Mano', cost: null },
+  { level: 1, label: 'Madera', cost: { wood: 5, stone: 0 } },
+  { level: 2, label: 'Piedra', cost: { wood: 2, stone: 6 } },
 ];
 
-export function getCraftDef(tool: ToolKind): CraftDef {
-  const def = CRAFT_DEFS.find((d) => d.tool === tool);
-  if (!def) throw new Error(`Craft def no encontrado: ${tool}`);
-  return def;
-}
+export const ARMOR_TIERS: ArmorTierDef[] = [
+  { level: 0, label: 'Ninguna', cost: null, defense: 0 },
+  { level: 1, label: 'Madera', cost: { wood: 6, stone: 0 }, defense: 1 },
+  { level: 2, label: 'Piedra', cost: { wood: 2, stone: 8 }, defense: 2 },
+];
+
+export const TOOL_KINDS: { kind: ToolKind; label: string }[] = [
+  { kind: 'axe', label: 'Hacha' },
+  { kind: 'pickaxe', label: 'Pico' },
+];
+
+export const ARMOR_SLOTS: { slot: ArmorSlot; label: string }[] = [
+  { slot: 'head', label: 'Casco' },
+  { slot: 'chest', label: 'Pechera' },
+  { slot: 'boots', label: 'Botas' },
+];
 
 export function getToolLevel(state: GameState, tool: ToolKind): number {
   return tool === 'axe' ? state.player.tools.axeLevel : state.player.tools.pickaxeLevel;
 }
 
-export function costForNextLevel(tool: ToolKind, currentLevel: number): { wood: number; stone: number } {
-  const def = getCraftDef(tool);
-  const nextLevel = currentLevel + 1;
-  return { wood: def.baseCost.wood * nextLevel, stone: def.baseCost.stone * nextLevel };
+export function getArmorLevel(state: GameState, slot: ArmorSlot): number {
+  return state.player.armor[slot];
 }
 
-export function canCraft(state: GameState, tool: ToolKind): boolean {
-  if (!hasWorkshop(state)) return false;
-  const def = getCraftDef(tool);
-  const level = getToolLevel(state, tool);
-  if (level >= def.maxLevel) return false;
-  const cost = costForNextLevel(tool, level);
+export function totalDefense(state: GameState): number {
+  return ARMOR_SLOTS.reduce((sum, { slot }) => sum + ARMOR_TIERS[getArmorLevel(state, slot)].defense, 0);
+}
+
+function canAffordCost(state: GameState, cost: TierCost): boolean {
   return state.inventory.wood >= cost.wood && state.inventory.stone >= cost.stone;
 }
 
+export function canCraftTool(state: GameState, tool: ToolKind): boolean {
+  if (!hasWorkshop(state)) return false;
+  const next = TOOL_TIERS[getToolLevel(state, tool) + 1];
+  if (!next?.cost) return false;
+  return canAffordCost(state, next.cost);
+}
+
 export function craftTool(state: GameState, tool: ToolKind): boolean {
-  if (!canCraft(state, tool)) return false;
+  if (!canCraftTool(state, tool)) return false;
+  const next = TOOL_TIERS[getToolLevel(state, tool) + 1];
+  if (!next?.cost) return false;
 
-  const level = getToolLevel(state, tool);
-  const cost = costForNextLevel(tool, level);
+  state.inventory.wood -= next.cost.wood;
+  state.inventory.stone -= next.cost.stone;
 
-  state.inventory.wood -= cost.wood;
-  state.inventory.stone -= cost.stone;
-
-  if (tool === 'axe') {
-    state.player.tools.axeLevel += 1;
-  } else {
-    state.player.tools.pickaxeLevel += 1;
-  }
+  if (tool === 'axe') state.player.tools.axeLevel += 1;
+  else state.player.tools.pickaxeLevel += 1;
 
   return true;
 }
 
-export { CRAFT_DEFS };
+export function canCraftArmor(state: GameState, slot: ArmorSlot): boolean {
+  if (!hasWorkshop(state)) return false;
+  const next = ARMOR_TIERS[getArmorLevel(state, slot) + 1];
+  if (!next?.cost) return false;
+  return canAffordCost(state, next.cost);
+}
+
+export function craftArmor(state: GameState, slot: ArmorSlot): boolean {
+  if (!canCraftArmor(state, slot)) return false;
+  const next = ARMOR_TIERS[getArmorLevel(state, slot) + 1];
+  if (!next?.cost) return false;
+
+  state.inventory.wood -= next.cost.wood;
+  state.inventory.stone -= next.cost.stone;
+  state.player.armor[slot] += 1;
+
+  return true;
+}

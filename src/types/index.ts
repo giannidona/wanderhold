@@ -1,5 +1,10 @@
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
+export interface Vector2 {
+  x: number;
+  y: number;
+}
+
 export type ResourceKind = 'wood' | 'stone';
 
 export interface ResourceNode {
@@ -9,6 +14,7 @@ export interface ResourceNode {
   y: number;
   hitsRemaining: number;
   maxHits: number;
+  respawnAt: number | null;
 }
 
 export type BuildingKind = 'workshop' | 'hut';
@@ -25,16 +31,25 @@ export interface Tools {
   pickaxeLevel: number;
 }
 
+export type ArmorSlotKind = 'head' | 'chest' | 'boots';
+
+export interface Armor {
+  head: number;
+  chest: number;
+  boots: number;
+}
+
 export interface CombatStats {
   maxHp: number;
   attack: number;
 }
 
 export interface PlayerState {
-  x: number;
-  y: number;
-  facing: Direction;
+  px: number;
+  py: number;
+  facing: Vector2;
   tools: Tools;
+  armor: Armor;
   combat: CombatStats;
 }
 
@@ -74,6 +89,7 @@ export interface DungeonRunState {
   playerHp: number;
   playerMaxHp: number;
   playerAttack: number;
+  playerDefense: number;
   lootWood: number;
   lootStone: number;
   log: CombatLogEntry[];

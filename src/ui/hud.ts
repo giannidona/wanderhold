@@ -1,6 +1,17 @@
 import type { GameState } from '../types';
 import { BUILDING_DEFS, canAfford, hasWorkshop } from '../state/buildings';
-import { CRAFT_DEFS, canCraft, costForNextLevel, getToolLevel } from '../state/craft';
+import {
+  ARMOR_SLOTS,
+  ARMOR_TIERS,
+  TOOL_KINDS,
+  TOOL_TIERS,
+  canCraftArmor,
+  canCraftTool,
+  getArmorLevel,
+  getToolLevel,
+  type ArmorTierDef,
+  type ToolTierDef,
+} from '../state/craft';
 
 export function renderHud(container: HTMLElement, state: GameState): void {
   if (state.scene === 'dungeon') {
@@ -20,18 +31,13 @@ function renderVillageHud(state: GameState): string {
       <div class="hud-row"><span>Madera</span><strong>${state.inventory.wood}</strong></div>
       <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}</strong></div>
     </div>
-    <div class="hud-section">
-      <h2>Herramientas</h2>
-      <div class="hud-row"><span>Hacha</span><strong>Nv. ${state.player.tools.axeLevel}</strong></div>
-      <div class="hud-row"><span>Pico</span><strong>Nv. ${state.player.tools.pickaxeLevel}</strong></div>
-    </div>
     ${renderCraftSection(state)}
     <div class="hud-section">
       <button id="enter-dungeon-btn" type="button" class="primary-btn">Entrar a la mazmorra</button>
     </div>
     <div class="hud-section">
       <h2>Controles</h2>
-      <p class="hud-hint">WASD para moverte. Chocá contra un árbol o roca para recolectar. Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
+      <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol o roca para recolectar. Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
     </div>
   `;
 }
@@ -41,36 +47,52 @@ function renderCraftSection(state: GameState): string {
     return `
       <div class="hud-section">
         <h2>Craftear</h2>
-        <p class="hud-hint">Construí un Taller para desbloquear el crafteo de herramientas.</p>
+        <p class="hud-hint">Construí un Taller para desbloquear el crafteo de herramientas y armadura.</p>
       </div>
     `;
   }
 
-  const rows = CRAFT_DEFS.map((def) => {
-    const level = getToolLevel(state, def.tool);
-    const maxed = level >= def.maxLevel;
-    const cost = costForNextLevel(def.tool, level);
-    const affordable = canCraft(state, def.tool);
+  const toolRows = TOOL_KINDS.map(({ kind, label }) =>
+    craftRow(label, TOOL_TIERS, getToolLevel(state, kind), canCraftTool(state, kind), `data-craft-tool="${kind}"`)
+  ).join('');
 
-    const costLabel = maxed ? 'Nivel máximo' : `${cost.wood} madera / ${cost.stone} piedra`;
-
-    return `
-      <button
-        class="craft-option${affordable ? '' : ' craft-option--disabled'}"
-        data-craft-tool="${def.tool}"
-        ${affordable ? '' : 'disabled'}
-      >
-        <span class="craft-option-label">${def.label} · Nv. ${level}</span>
-        <span class="craft-option-cost">${costLabel}</span>
-      </button>
-    `;
-  }).join('');
+  const armorRows = ARMOR_SLOTS.map(({ slot, label }) =>
+    craftRow(label, ARMOR_TIERS, getArmorLevel(state, slot), canCraftArmor(state, slot), `data-craft-armor="${slot}"`)
+  ).join('');
 
   return `
     <div class="hud-section">
-      <h2>Craftear</h2>
-      <div class="craft-options">${rows}</div>
+      <h2>Herramientas</h2>
+      <div class="craft-options">${toolRows}</div>
     </div>
+    <div class="hud-section">
+      <h2>Armadura</h2>
+      <div class="craft-options">${armorRows}</div>
+    </div>
+  `;
+}
+
+function craftRow(
+  label: string,
+  tiers: ToolTierDef[] | ArmorTierDef[],
+  level: number,
+  affordable: boolean,
+  dataAttr: string
+): string {
+  const current = tiers[level];
+  const next = tiers[level + 1];
+  const maxed = !next;
+  const costLabel = maxed || !next.cost ? 'Nivel máximo' : `${next.cost.wood} madera / ${next.cost.stone} piedra`;
+
+  return `
+    <button
+      class="craft-option${affordable ? '' : ' craft-option--disabled'}"
+      ${dataAttr}
+      ${affordable ? '' : 'disabled'}
+    >
+      <span class="craft-option-label">${label} · ${current.label}</span>
+      <span class="craft-option-cost">${maxed ? costLabel : `Mejorar a ${next.label}: ${costLabel}`}</span>
+    </button>
   `;
 }
 
@@ -127,6 +149,7 @@ function renderDungeonHud(state: GameState): string {
       <h2>Mazmorra</h2>
       ${statusLine}
       <div class="hud-row"><span>Tu HP</span><strong>${Math.max(run.playerHp, 0)}/${run.playerMaxHp}</strong></div>
+      <div class="hud-row"><span>Defensa</span><strong>${run.playerDefense}</strong></div>
       <div class="hud-row"><span>Botín (run)</span><strong>${run.lootWood} madera / ${run.lootStone} piedra</strong></div>
     </div>
     <div class="hud-section">

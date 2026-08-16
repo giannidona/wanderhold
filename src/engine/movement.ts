@@ -1,46 +1,50 @@
-import type { Direction, GameState } from '../types';
-import { findBuildingAt, findNodeAt } from '../state/village';
+import type { GameState, Vector2 } from '../types';
+import { circleRectOverlap, clamp, tileRect } from './collision';
+import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
 
-export type MoveResult = 'moved' | 'gathered' | 'blocked';
+const SPEED_TILES_PER_SEC = 4.5;
+const MAX_STEP_PX = 2;
 
-const DIRECTION_DELTA: Record<Direction, { x: number; y: number }> = {
-  up: { x: 0, y: -1 },
-  down: { x: 0, y: 1 },
-  left: { x: -1, y: 0 },
-  right: { x: 1, y: 0 },
-};
-
-export function tryMove(state: GameState, dir: Direction): MoveResult {
-  state.player.facing = dir;
-
-  const delta = DIRECTION_DELTA[dir];
-  const targetX = state.player.x + delta.x;
-  const targetY = state.player.y + delta.y;
-  const size = state.village.gridSize;
-
-  if (targetX < 0 || targetY < 0 || targetX >= size || targetY >= size) {
-    return 'blocked';
+function isBlocked(state: GameState, cx: number, cy: number): boolean {
+  for (const node of state.village.resourceNodes) {
+    if (node.hitsRemaining <= 0) continue;
+    if (circleRectOverlap(cx, cy, PLAYER_RADIUS, tileRect(node.x, node.y, TILE_SIZE))) return true;
   }
-
-  const node = findNodeAt(state.village, targetX, targetY);
-  if (node) {
-    const toolLevel = node.kind === 'wood' ? state.player.tools.axeLevel : state.player.tools.pickaxeLevel;
-    const perHitYield = 1 + toolLevel;
-
-    node.hitsRemaining -= 1;
-    const depletionBonus = node.hitsRemaining <= 0 ? perHitYield : 0;
-    state.inventory[node.kind] += perHitYield + depletionBonus;
-
-    return 'gathered';
+  for (const b of state.village.buildings) {
+    if (circleRectOverlap(cx, cy, PLAYER_RADIUS, tileRect(b.x, b.y, TILE_SIZE))) return true;
   }
-
-  if (findBuildingAt(state.village, targetX, targetY)) {
-    return 'blocked';
-  }
-
-  state.player.x = targetX;
-  state.player.y = targetY;
-  return 'moved';
+  return false;
 }
 
-export { DIRECTION_DELTA };
+function moveAxis(state: GameState, total: number, axis: 'x' | 'y'): void {
+  if (total === 0) return;
+
+  const bound = state.village.gridSize * TILE_SIZE;
+  const steps = Math.max(1, Math.ceil(Math.abs(total) / MAX_STEP_PX));
+  const stepAmount = total / steps;
+
+  for (let i = 0; i < steps; i++) {
+    const candidatePx = axis === 'x' ? state.player.px + stepAmount : state.player.px;
+    const candidatePy = axis === 'y' ? state.player.py + stepAmount : state.player.py;
+    const clampedPx = clamp(candidatePx, PLAYER_RADIUS, bound - PLAYER_RADIUS);
+    const clampedPy = clamp(candidatePy, PLAYER_RADIUS, bound - PLAYER_RADIUS);
+
+    if (isBlocked(state, clampedPx, clampedPy)) break;
+
+    state.player.px = clampedPx;
+    state.player.py = clampedPy;
+  }
+}
+
+// Movimiento libre en píxeles, resuelto en sub-pasos por eje (X y luego Y)
+// para poder deslizar contra obstáculos y quedar a mitad de dos tiles,
+// en vez de trabarse lejos del tile por un salto grande de un solo golpe.
+export function updatePlayerMovement(state: GameState, moveVec: Vector2, dtSeconds: number): void {
+  if (moveVec.x === 0 && moveVec.y === 0) return;
+
+  state.player.facing = moveVec;
+
+  const speedPx = SPEED_TILES_PER_SEC * TILE_SIZE;
+  moveAxis(state, moveVec.x * speedPx * dtSeconds, 'x');
+  moveAxis(state, moveVec.y * speedPx * dtSeconds, 'y');
+}
