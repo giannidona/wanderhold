@@ -1,0 +1,210 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #16181d;
+  color: #eae6da;
+  display: flex;
+  justify-content: center;
+}
+
+#app {
+  width: 100%;
+  max-width: 960px;
+  padding: 24px 16px 48px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+}
+
+.app-subtitle {
+  color: #8b8f98;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.app-main {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+#village-canvas {
+  background: #222;
+  border: 2px solid #3a3d45;
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+
+#hud {
+  flex: 1;
+  min-width: 220px;
+  background: #1d1f26;
+  border: 1px solid #2c2f38;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.hud-section + .hud-section {
+  margin-top: 20px;
+}
+
+.hud-section h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b8f98;
+  margin: 0 0 10px;
+}
+
+.hud-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #2c2f38;
+  font-size: 0.95rem;
+}
+
+.hud-hint {
+  font-size: 0.85rem;
+  color: #a3a7b0;
+  line-height: 1.4;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 10px 12px;
+  background: #4a3f68;
+  color: #eae6da;
+  border: 1px solid #5d4f82;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #5a4d7d;
+}
+
+.hud-outcome {
+  font-weight: 600;
+  margin: 4px 0 10px;
+}
+
+.hud-outcome--win {
+  color: #7fd88f;
+}
+
+.hud-outcome--lose {
+  color: #e08b7d;
+}
+
+.combat-log {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-row {
+  font-size: 0.8rem;
+  color: #c7cad1;
+  padding: 4px 6px;
+  background: #23252d;
+  border-radius: 4px;
+}
+
+#village-canvas {
+  cursor: pointer;
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 10px;
+  background: transparent;
+  color: #c7cad1;
+  border: 1px solid #3a3d45;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background: #23252d;
+}
+
+.build-options,
+.craft-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.build-option,
+.craft-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  background: #23252d;
+  border: 1px solid #34363f;
+  border-radius: 6px;
+  color: #eae6da;
+  text-align: left;
+  cursor: pointer;
+}
+
+.build-option:hover:not(:disabled),
+.craft-option:hover:not(:disabled) {
+  border-color: #5d4f82;
+}
+
+.build-option--disabled,
+.craft-option--disabled,
+.build-option:disabled,
+.craft-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.build-option-label,
+.craft-option-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.build-option-cost,
+.craft-option-cost {
+  font-size: 0.78rem;
+  color: #a3a7b0;
+}
+
+.build-option-desc {
+  font-size: 0.78rem;
+  color: #8b8f98;
+  margin-top: 2px;
+}
