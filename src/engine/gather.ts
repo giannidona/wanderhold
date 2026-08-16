@@ -1,4 +1,4 @@
-import type { GameState } from '../types';
+import type { GameState, ResourceKind } from '../types';
 import { circleRectOverlap, tileRect } from './collision';
 import { PLAYER_RADIUS, RESOURCE_REGEN_MS, TILE_SIZE } from '../constants';
 
@@ -7,9 +7,11 @@ const GATHER_RADIUS = PLAYER_RADIUS + 4;
 
 const lastGatherAt = new Map<string, number>();
 
-function canGather(state: GameState, nodeKind: 'wood' | 'stone'): boolean {
-  // Los árboles se cortan a mano. La piedra necesita al menos un pico de madera.
-  if (nodeKind === 'stone') return state.player.tools.pickaxeLevel > 0;
+function canGather(state: GameState, nodeKind: ResourceKind): boolean {
+  // Los árboles se cortan a mano. La piedra necesita pico de Madera (nv. 1+).
+  // El hierro necesita pico de Piedra (nv. 2+).
+  if (nodeKind === 'stone') return state.player.tools.pickaxeLevel >= 1;
+  if (nodeKind === 'iron') return state.player.tools.pickaxeLevel >= 2;
   return true;
 }
 

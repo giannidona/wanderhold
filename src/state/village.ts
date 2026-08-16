@@ -2,8 +2,10 @@ import type { Building, ResourceNode, VillageState } from '../types';
 
 const TREE_COUNT = 16;
 const ROCK_COUNT = 10;
+const IRON_COUNT = 8;
 const TREE_HITS = 3;
 const ROCK_HITS = 4;
+const IRON_HITS = 5;
 
 function randInt(max: number): number {
   return Math.floor(Math.random() * max);
@@ -41,6 +43,7 @@ export function createInitialVillage(
 
   placeNodes('wood', TREE_COUNT, TREE_HITS);
   placeNodes('stone', ROCK_COUNT, ROCK_HITS);
+  placeNodes('iron', IRON_COUNT, IRON_HITS);
 
   return { gridSize, resourceNodes: nodes, buildings: [] };
 }

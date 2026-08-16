@@ -6,6 +6,7 @@ import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
 export interface BuildingCost {
   wood: number;
   stone: number;
+  iron: number;
 }
 
 export interface BuildingDef {
@@ -19,14 +20,20 @@ export const BUILDING_DEFS: BuildingDef[] = [
   {
     kind: 'workshop',
     label: 'Taller',
-    cost: { wood: 10, stone: 5 },
-    description: 'Habilita craftear hacha y pico.',
+    cost: { wood: 12, stone: 0, iron: 0 },
+    description: 'Habilita craftear tiers Madera y Piedra. Solo cuesta madera, así se puede construir a mano antes de tener pico.',
   },
   {
     kind: 'hut',
     label: 'Choza',
-    cost: { wood: 6, stone: 2 },
+    cost: { wood: 6, stone: 2, iron: 0 },
     description: 'Vivienda básica. Sin efecto todavía (futuro: población).',
+  },
+  {
+    kind: 'forge',
+    label: 'Herrería',
+    cost: { wood: 0, stone: 15, iron: 5 },
+    description: 'Habilita craftear el tier Hierro (necesitás Taller además). Solo cuesta piedra y hierro.',
   },
 ];
 
@@ -37,7 +44,11 @@ export function getBuildingDef(kind: BuildingKind): BuildingDef {
 }
 
 export function canAfford(state: GameState, cost: BuildingCost): boolean {
-  return state.inventory.wood >= cost.wood && state.inventory.stone >= cost.stone;
+  return (
+    state.inventory.wood >= cost.wood &&
+    state.inventory.stone >= cost.stone &&
+    state.inventory.iron >= cost.iron
+  );
 }
 
 export function placeBuilding(state: GameState, tile: TilePos, kind: BuildingKind): boolean {
@@ -56,6 +67,7 @@ export function placeBuilding(state: GameState, tile: TilePos, kind: BuildingKin
 
   state.inventory.wood -= def.cost.wood;
   state.inventory.stone -= def.cost.stone;
+  state.inventory.iron -= def.cost.iron;
 
   state.village.buildings.push({
     id: `${kind}-${tile.x}-${tile.y}-${Date.now()}`,
@@ -69,4 +81,8 @@ export function placeBuilding(state: GameState, tile: TilePos, kind: BuildingKin
 
 export function hasWorkshop(state: GameState): boolean {
   return state.village.buildings.some((b) => b.kind === 'workshop');
+}
+
+export function hasForge(state: GameState): boolean {
+  return state.village.buildings.some((b) => b.kind === 'forge');
 }

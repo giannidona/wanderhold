@@ -1,5 +1,5 @@
 import type { GameState } from '../types';
-import { BUILDING_DEFS, canAfford, hasWorkshop } from '../state/buildings';
+import { BUILDING_DEFS, canAfford, hasForge, hasWorkshop, type BuildingCost } from '../state/buildings';
 import {
   ARMOR_SLOTS,
   ARMOR_TIERS,
@@ -9,6 +9,7 @@ import {
   canCraftTool,
   getArmorLevel,
   getToolLevel,
+  missingBuildingFor,
   type ArmorTierDef,
   type ToolTierDef,
 } from '../state/craft';
@@ -24,12 +25,21 @@ export function renderHud(container: HTMLElement, state: GameState): void {
     : renderVillageHud(state);
 }
 
+function formatCost(cost: BuildingCost): string {
+  const parts: string[] = [];
+  if (cost.wood > 0) parts.push(`${cost.wood} madera`);
+  if (cost.stone > 0) parts.push(`${cost.stone} piedra`);
+  if (cost.iron > 0) parts.push(`${cost.iron} hierro`);
+  return parts.join(' / ') || 'Gratis';
+}
+
 function renderVillageHud(state: GameState): string {
   return `
     <div class="hud-section">
       <h2>Inventario</h2>
       <div class="hud-row"><span>Madera</span><strong>${state.inventory.wood}</strong></div>
       <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}</strong></div>
+      <div class="hud-row"><span>Hierro</span><strong>${state.inventory.iron}</strong></div>
     </div>
     ${renderCraftSection(state)}
     <div class="hud-section">
@@ -37,7 +47,7 @@ function renderVillageHud(state: GameState): string {
     </div>
     <div class="hud-section">
       <h2>Controles</h2>
-      <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol o roca para recolectar.${state.player.tools.pickaxeLevel <= 0 ? ' Las rocas están bloqueadas hasta que craftees un Pico de Madera.' : ''} Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
+      <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol/roca/vena de hierro para recolectar (rocas necesitan Pico de Madera, hierro necesita Pico de Piedra). Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
     </div>
   `;
 }
@@ -52,13 +62,19 @@ function renderCraftSection(state: GameState): string {
     `;
   }
 
-  const toolRows = TOOL_KINDS.map(({ kind, label }) =>
-    craftRow(label, TOOL_TIERS, getToolLevel(state, kind), canCraftTool(state, kind), `data-craft-tool="${kind}"`)
-  ).join('');
+  const toolRows = TOOL_KINDS.map(({ kind, label }) => {
+    const level = getToolLevel(state, kind);
+    const next = TOOL_TIERS[level + 1];
+    const reason = missingBuildingFor(next, state);
+    return craftRow(label, TOOL_TIERS, level, canCraftTool(state, kind), `data-craft-tool="${kind}"`, reason);
+  }).join('');
 
-  const armorRows = ARMOR_SLOTS.map(({ slot, label }) =>
-    craftRow(label, ARMOR_TIERS, getArmorLevel(state, slot), canCraftArmor(state, slot), `data-craft-armor="${slot}"`)
-  ).join('');
+  const armorRows = ARMOR_SLOTS.map(({ slot, label }) => {
+    const level = getArmorLevel(state, slot);
+    const next = ARMOR_TIERS[level + 1];
+    const reason = missingBuildingFor(next, state);
+    return craftRow(label, ARMOR_TIERS, level, canCraftArmor(state, slot), `data-craft-armor="${slot}"`, reason);
+  }).join('');
 
   return `
     <div class="hud-section">
@@ -69,6 +85,7 @@ function renderCraftSection(state: GameState): string {
       <h2>Armadura</h2>
       <div class="craft-options">${armorRows}</div>
     </div>
+    ${hasForge(state) ? '' : '<div class="hud-section"><p class="hud-hint">Construí una Herrería para poder craftear el tier Hierro.</p></div>'}
   `;
 }
 
@@ -77,12 +94,23 @@ function craftRow(
   tiers: ToolTierDef[] | ArmorTierDef[],
   level: number,
   affordable: boolean,
-  dataAttr: string
+  dataAttr: string,
+  lockedReason: string | null
 ): string {
   const current = tiers[level];
   const next = tiers[level + 1];
   const maxed = !next;
-  const costLabel = maxed || !next.cost ? 'Nivel máximo' : `${next.cost.wood} madera / ${next.cost.stone} piedra`;
+
+  let costLabel: string;
+  if (maxed) {
+    costLabel = 'Nivel máximo';
+  } else if (lockedReason) {
+    costLabel = lockedReason;
+  } else if (next.cost) {
+    costLabel = `Mejorar a ${next.label}: ${formatCost(next.cost)}`;
+  } else {
+    costLabel = '';
+  }
 
   return `
     <button
@@ -91,7 +119,7 @@ function craftRow(
       ${affordable ? '' : 'disabled'}
     >
       <span class="craft-option-label">${label} · ${current.label}</span>
-      <span class="craft-option-cost">${maxed ? costLabel : `Mejorar a ${next.label}: ${costLabel}`}</span>
+      <span class="craft-option-cost">${costLabel}</span>
     </button>
   `;
 }
@@ -109,7 +137,7 @@ function renderBuildPanel(state: GameState): string {
         ${affordable ? '' : 'disabled'}
       >
         <span class="build-option-label">${def.label}</span>
-        <span class="build-option-cost">${def.cost.wood} madera / ${def.cost.stone} piedra</span>
+        <span class="build-option-cost">${formatCost(def.cost)}</span>
         <span class="build-option-desc">${def.description}</span>
       </button>
     `;

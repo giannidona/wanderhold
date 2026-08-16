@@ -10,6 +10,8 @@ const COLORS = {
   woodTop: '#3f7d3f',
   stone: '#7a7a7a',
   stoneShadow: '#5c5c5c',
+  iron: '#8a8a8a',
+  ironFleck: '#c9701f',
   player: '#e0b34d',
   playerFacing: '#3a2a10',
   hitLabel: 'rgba(0,0,0,0.65)',
@@ -17,6 +19,9 @@ const COLORS = {
   workshopRoof: '#c98a4b',
   hut: '#5a4a6b',
   hutRoof: '#8f7ab5',
+  forge: '#4a4a4a',
+  forgeRoof: '#3a3a3a',
+  forgeEmber: 'rgba(255,140,40,0.85)',
   pendingTile: 'rgba(224, 179, 77, 0.35)',
 };
 
@@ -44,6 +49,8 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.strokeRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
   }
 
+  const pickaxeLevel = state.player.tools.pickaxeLevel;
+
   for (const node of state.village.resourceNodes) {
     if (node.hitsRemaining <= 0) continue;
     const px = node.x * TILE_SIZE;
@@ -56,7 +63,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
       ctx.beginPath();
       ctx.arc(px + 16, py + 12, 11, 0, Math.PI * 2);
       ctx.fill();
-    } else {
+    } else if (node.kind === 'stone') {
       ctx.fillStyle = COLORS.stoneShadow;
       ctx.beginPath();
       ctx.ellipse(px + 17, py + 21, 11, 7, 0, 0, Math.PI * 2);
@@ -66,9 +73,25 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
       ctx.ellipse(px + 16, py + 19, 11, 7, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      if (state.player.tools.pickaxeLevel <= 0) {
-        drawLockIcon(ctx, px + 16, py + 9);
-      }
+      if (pickaxeLevel < 1) drawLockIcon(ctx, px + 16, py + 9);
+    } else {
+      ctx.fillStyle = COLORS.stoneShadow;
+      ctx.beginPath();
+      ctx.ellipse(px + 17, py + 21, 11, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = COLORS.iron;
+      ctx.beginPath();
+      ctx.ellipse(px + 16, py + 19, 11, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = COLORS.ironFleck;
+      ctx.beginPath();
+      ctx.arc(px + 12, py + 18, 1.6, 0, Math.PI * 2);
+      ctx.arc(px + 20, py + 21, 1.6, 0, Math.PI * 2);
+      ctx.arc(px + 16, py + 15, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (pickaxeLevel < 2) drawLockIcon(ctx, px + 16, py + 9);
     }
 
     ctx.fillStyle = COLORS.hitLabel;
@@ -105,8 +128,8 @@ function drawLockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
 }
 
 function drawBuilding(ctx: CanvasRenderingContext2D, px: number, py: number, kind: BuildingKind): void {
-  const bodyColor = kind === 'workshop' ? COLORS.workshop : COLORS.hut;
-  const roofColor = kind === 'workshop' ? COLORS.workshopRoof : COLORS.hutRoof;
+  const bodyColor = kind === 'workshop' ? COLORS.workshop : kind === 'forge' ? COLORS.forge : COLORS.hut;
+  const roofColor = kind === 'workshop' ? COLORS.workshopRoof : kind === 'forge' ? COLORS.forgeRoof : COLORS.hutRoof;
 
   ctx.fillStyle = bodyColor;
   ctx.fillRect(px + 5, py + 14, TILE_SIZE - 10, TILE_SIZE - 18);
@@ -118,4 +141,11 @@ function drawBuilding(ctx: CanvasRenderingContext2D, px: number, py: number, kin
   ctx.lineTo(px + TILE_SIZE - 3, py + 15);
   ctx.closePath();
   ctx.fill();
+
+  if (kind === 'forge') {
+    ctx.fillStyle = COLORS.forgeEmber;
+    ctx.beginPath();
+    ctx.arc(px + TILE_SIZE / 2, py + 9, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }

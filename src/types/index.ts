@@ -5,7 +5,7 @@ export interface Vector2 {
   y: number;
 }
 
-export type ResourceKind = 'wood' | 'stone';
+export type ResourceKind = 'wood' | 'stone' | 'iron';
 
 export interface ResourceNode {
   id: string;
@@ -17,7 +17,7 @@ export interface ResourceNode {
   respawnAt: number | null;
 }
 
-export type BuildingKind = 'workshop' | 'hut';
+export type BuildingKind = 'workshop' | 'hut' | 'forge';
 
 export interface Building {
   id: string;
@@ -56,6 +56,7 @@ export interface PlayerState {
 export interface Inventory {
   wood: number;
   stone: number;
+  iron: number;
 }
 
 export interface VillageState {

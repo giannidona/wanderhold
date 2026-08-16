@@ -17,7 +17,7 @@ function createNewState(): GameState {
       armor: { head: 0, chest: 0, boots: 0 },
       combat: { maxHp: 20, attack: 4 },
     },
-    inventory: { wood: 0, stone: 0 },
+    inventory: { wood: 0, stone: 0, iron: 0 },
     village: createInitialVillage(GRID_SIZE, START_TILE),
     dungeon: null,
     pendingBuildTile: null,

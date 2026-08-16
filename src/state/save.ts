@@ -1,7 +1,7 @@
 import type { GameState } from '../types';
 
-// v4: el jugador suma armor (casco/pechera/botas) y la mazmorra playerDefense.
-const SAVE_KEY = 'wanderhold-save-v4';
+// v5: nuevo recurso Hierro (inventory.iron) y edificio Herrería (BuildingKind).
+const SAVE_KEY = 'wanderhold-save-v5';
 
 export function saveGame(state: GameState): void {
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));
