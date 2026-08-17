@@ -93,16 +93,97 @@ Con esto debería alcanzar para que a 32px se distingan: taller = marrón cálid
 
 ## Fase 2 — Mazmorra
 
-La mazmorra es una escena de combate tipo JRPG clásico (vos a la izquierda, enemigo a la derecha), no top-down. Los sprites acá van de perfil/tres cuartos mirando hacia el centro de la pantalla, y pueden tener bastante más detalle porque se ven grandes en pantalla.
+La mazmorra es una escena de combate tipo JRPG clásico (vos a la izquierda, enemigo a la derecha), no top-down. Los sprites acá van de perfil/tres cuartos mirando hacia el centro de la pantalla.
 
-| Archivo | Prompt (subject) | Tamaño final |
-|---|---|---|
-| `dungeon-floor-a.png` | a dungeon stone floor tile, worn cobblestone with cracks | 32×32 |
-| `dungeon-floor-b.png` | a dungeon stone floor tile, slightly darker cobblestone with moss in the cracks | 32×32 |
-| `player-battle.png` | a medieval adventurer in a ready combat stance holding an axe, side view facing right, full body | ~96×96 |
-| `enemy-slime.png` | a slime monster, translucent green gelatinous blob with a simple face, side view facing left, squashed round shape | ~64×64 |
-| `enemy-bandit.png` | a bandit enemy, dark leather armor, hood covering the face, holding a dagger, side view facing left, combat stance | ~80×80 |
-| `enemy-wolf.png` | a wolf monster, gray fur, bared fangs, low aggressive stance, side view facing left | ~80×80 |
+Dos cosas que aprendimos en Fase 1 y ya corregí en los prompts de abajo:
+- Los tiles de piso: si Gemini genera un canvas grande con el patrón repetido varias veces adentro (pasó con el pasto), yo lo soluciono recortando un solo período antes de reducir — no hace falta que hagas nada distinto, pero le pedí a Gemini que evite motivos grandes repetidos para reducir el riesgo.
+- Todo lo demás (personaje, enemigos): pedí encuadre ajustado (mínimo margen vacío) para no perder detalle al escalar, mismo problema que tuvimos con los edificios.
+
+Pegá cada prompt completo en un chat nuevo de Gemini, uno por vez.
+
+**`dungeon-floor-a.png`:**
+```
+pixel art, 16-bit SNES-era RPG game asset, dungeon dark stone theme,
+limited color palette (~16-20 colors), cold gray tones with subtle blue-
+green shadow, flat cel-shaded coloring, no gradients, no anti-aliasing.
+
+Subject: a worn cobblestone dungeon floor texture, irregular stone blocks
+with cracks and small chips. Fine, irregular grain — avoid any single
+large repeating motif or object (no big distinct crack pattern that
+stands out, just varied stone blocks of different sizes).
+
+Framing: seamless tileable texture, fills the entire frame edge to edge,
+viewed from directly above, no vignette, no darkened corners.
+```
+
+**`dungeon-floor-b.png`:**
+```
+pixel art, 16-bit SNES-era RPG game asset, dungeon dark stone theme,
+limited color palette (~16-20 colors), cold gray tones with subtle blue-
+green shadow, flat cel-shaded coloring, no gradients, no anti-aliasing.
+
+Subject: same worn cobblestone dungeon floor as a base, slightly darker
+shade overall, with small patches of moss/lichen in a few cracks. Fine,
+irregular grain — avoid any single large repeating motif or object.
+
+Framing: seamless tileable texture, fills the entire frame edge to edge,
+viewed from directly above, no vignette, no darkened corners.
+```
+
+**`player-battle.png`:**
+```
+pixel art, 16-bit SNES-era RPG game asset, medieval fantasy theme, limited
+color palette (~20-24 colors), warm earthy tones, flat cel-shaded
+coloring, no gradients, no anti-aliasing, crisp 1px dark outline around
+the silhouette.
+
+Subject: a medieval adventurer in a ready combat stance, holding an axe,
+hooded traveler's cloak like a classic JRPG hero sprite. Side view,
+facing right, full body.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`enemy-slime.png`:**
+```
+pixel art, 16-bit SNES-era RPG game asset, limited color palette (~12-16
+colors), flat cel-shaded coloring, no gradients, no anti-aliasing, crisp
+1px dark outline around the silhouette.
+
+Subject: a slime monster, translucent green gelatinous blob with a simple
+cute-but-menacing face, squashed round shape. Side view, facing left,
+ready-to-attack pose.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`enemy-bandit.png`:**
+```
+pixel art, 16-bit SNES-era RPG game asset, limited color palette (~16-20
+colors), dark leather and muted colors, flat cel-shaded coloring, no
+gradients, no anti-aliasing, crisp 1px dark outline around the silhouette.
+
+Subject: a bandit enemy, dark leather armor, hood covering the face,
+holding a dagger. Side view, facing left, combat stance.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`enemy-wolf.png`:**
+```
+pixel art, 16-bit SNES-era RPG game asset, limited color palette (~12-16
+colors), gray and dark fur tones, flat cel-shaded coloring, no gradients,
+no anti-aliasing, crisp 1px dark outline around the silhouette.
+
+Subject: a wolf monster, gray fur, bared fangs, low aggressive stance.
+Side view, facing left.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+isolated on a plain white background, no scene, no cast shadow.
+```
 
 ## Fase 3 — Íconos del hotbar (herramientas y armadura)
 
