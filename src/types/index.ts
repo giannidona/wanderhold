@@ -17,7 +17,7 @@ export interface ResourceNode {
   respawnAt: number | null;
 }
 
-export type BuildingKind = 'workshop' | 'hut' | 'forge';
+export type BuildingKind = 'workshop' | 'hut' | 'forge' | 'storage';
 
 export interface Building {
   id: string;
@@ -100,6 +100,10 @@ export interface DungeonRunState {
   lootStone: number;
   log: CombatLogEntry[];
   outcome: DungeonOutcome | null;
+  // Profundidad global al momento de entrar a esta run (snapshot de
+  // GameState.dungeonDepth) — determina el escalado de HP/ataque de los
+  // enemigos y del botín de esta run específica.
+  depth: number;
 }
 
 export interface TilePos {
@@ -114,4 +118,10 @@ export interface GameState {
   village: VillageState;
   dungeon: DungeonRunState | null;
   pendingBuildTile: TilePos | null;
+  // Cuántas runs de mazmorra ganaste en total — escala la dificultad y el
+  // botín de la mazmorra (más profundo = más duro y más rentable).
+  dungeonDepth: number;
+  // Marca de tiempo (mismo reloj que engine/loop.ts) del último tick de
+  // ingreso pasivo por población (ver state/population.ts).
+  lastPassiveTickAt: number;
 }

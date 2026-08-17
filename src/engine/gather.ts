@@ -1,6 +1,7 @@
 import type { GameState, ResourceKind } from '../types';
 import { circleRectOverlap, tileRect } from './collision';
 import { PLAYER_RADIUS, RESOURCE_REGEN_MS, TILE_SIZE } from '../constants';
+import { addResourceCapped } from '../state/buildings';
 
 const GATHER_COOLDOWN_MS = 450;
 const GATHER_RADIUS = PLAYER_RADIUS + 4;
@@ -35,7 +36,7 @@ export function tickGathering(state: GameState, now: number): void {
 
     node.hitsRemaining -= 1;
     const depletionBonus = node.hitsRemaining <= 0 ? perHitYield : 0;
-    state.inventory[node.kind] += perHitYield + depletionBonus;
+    addResourceCapped(state, node.kind, perHitYield + depletionBonus);
 
     if (node.hitsRemaining <= 0) {
       node.respawnAt = now + RESOURCE_REGEN_MS;

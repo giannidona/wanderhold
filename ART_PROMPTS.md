@@ -187,15 +187,79 @@ isolated on a plain white background, no scene, no cast shadow.
 
 ## Fase 3 — Íconos del hotbar (herramientas y armadura)
 
-Estilo ícono de inventario (como Minecraft), no un objeto "en el mundo". Con uno por tipo alcanza — el tier (Madera/Piedra/Hierro) lo resuelvo yo con un recoloreado por código, no hace falta que generes 3 versiones de cada uno a menos que quieras más fidelidad más adelante.
+Estilo ícono de inventario (como Minecraft), no un objeto "en el mundo". Con uno por tipo alcanza — el tier (Madera/Piedra/Hierro) lo resuelvo yo con un filtro de color por CSS según la clase `tier-N`, no hace falta que generes 3 versiones de cada uno. Por eso pido tono metálico/neutro de base: recolorea mejor que si ya viniera muy marrón o muy gris.
 
-| Archivo | Prompt (subject) |
-|---|---|
-| `icon-axe.png` | a single wood-handled axe, inventory item icon, angled diagonally |
-| `icon-pickaxe.png` | a single wood-handled pickaxe, inventory item icon, angled diagonally |
-| `icon-helmet.png` | a simple medieval helmet, inventory item icon, front-facing |
-| `icon-chest.png` | a simple medieval leather chestplate, inventory item icon, front-facing |
-| `icon-boots.png` | a pair of simple medieval leather boots, inventory item icon |
+Pegá cada prompt completo en un chat nuevo de Gemini, uno por vez.
+
+**`icon-axe.png`:**
+```
+pixel art, 16-bit SNES-era RPG inventory item icon, limited color palette
+(~12-16 colors), neutral steel-gray metal with a plain wood handle, flat
+cel-shaded coloring, no gradients, no anti-aliasing, crisp 1px dark
+outline around the silhouette.
+
+Subject: a single axe, angled diagonally, simple inventory icon style
+(like a Minecraft or Terraria item icon) — not a scene, just the object.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+centered, isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`icon-pickaxe.png`:**
+```
+pixel art, 16-bit SNES-era RPG inventory item icon, limited color palette
+(~12-16 colors), neutral steel-gray metal with a plain wood handle, flat
+cel-shaded coloring, no gradients, no anti-aliasing, crisp 1px dark
+outline around the silhouette.
+
+Subject: a single pickaxe, angled diagonally, simple inventory icon style
+(like a Minecraft or Terraria item icon) — not a scene, just the object.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+centered, isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`icon-helmet.png`:**
+```
+pixel art, 16-bit SNES-era RPG inventory item icon, limited color palette
+(~12-16 colors), neutral steel-gray metal, flat cel-shaded coloring, no
+gradients, no anti-aliasing, crisp 1px dark outline around the silhouette.
+
+Subject: a simple medieval helmet, front-facing, simple inventory icon
+style (like a Minecraft or Terraria item icon) — not a scene, just the
+object.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+centered, isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`icon-chest.png`:**
+```
+pixel art, 16-bit SNES-era RPG inventory item icon, limited color palette
+(~12-16 colors), neutral steel-gray metal, flat cel-shaded coloring, no
+gradients, no anti-aliasing, crisp 1px dark outline around the silhouette.
+
+Subject: a simple medieval chestplate armor, front-facing, simple
+inventory icon style (like a Minecraft or Terraria item icon) — not a
+scene, just the object.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+centered, isolated on a plain white background, no scene, no cast shadow.
+```
+
+**`icon-boots.png`:**
+```
+pixel art, 16-bit SNES-era RPG inventory item icon, limited color palette
+(~12-16 colors), neutral steel-gray metal accents over plain leather,
+flat cel-shaded coloring, no gradients, no anti-aliasing, crisp 1px dark
+outline around the silhouette.
+
+Subject: a pair of simple medieval boots, simple inventory icon style
+(like a Minecraft or Terraria item icon) — not a scene, just the object.
+
+Framing: subject fills at least 85% of the frame, minimal empty margin,
+centered, isolated on a plain white background, no scene, no cast shadow.
+```
 
 ---
 

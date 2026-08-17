@@ -1,5 +1,6 @@
 import type { GameState } from '../types';
-import { BUILDING_DEFS, canAfford, hasForge, hasWorkshop, type BuildingCost } from '../state/buildings';
+import { BUILDING_DEFS, canAfford, getInventoryCap, hasForge, hasWorkshop, type BuildingCost } from '../state/buildings';
+import { getPopulation, WOOD_PER_POPULATION } from '../state/population';
 import {
   ARMOR_SLOTS,
   ARMOR_TIERS,
@@ -34,12 +35,25 @@ function formatCost(cost: BuildingCost): string {
 }
 
 function renderVillageHud(state: GameState): string {
+  const cap = getInventoryCap(state);
+  const population = getPopulation(state);
+
   return `
     <div class="hud-section">
       <h2>Inventario</h2>
-      <div class="hud-row"><span>Madera</span><strong>${state.inventory.wood}</strong></div>
-      <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}</strong></div>
-      <div class="hud-row"><span>Hierro</span><strong>${state.inventory.iron}</strong></div>
+      <div class="hud-row"><span>Madera</span><strong>${state.inventory.wood}/${cap}</strong></div>
+      <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}/${cap}</strong></div>
+      <div class="hud-row"><span>Hierro</span><strong>${state.inventory.iron}/${cap}</strong></div>
+    </div>
+    <div class="hud-section">
+      <h2>Aldea</h2>
+      <div class="hud-row"><span>Población</span><strong>${population}</strong></div>
+      <p class="hud-hint">${
+        population > 0
+          ? `Tus ${population} pobladores juntan +${population * WOOD_PER_POPULATION} madera cada 10s de forma pasiva (incluso en la mazmorra).`
+          : 'Construí una Choza para conseguir tu primer poblador y empezar a juntar madera de forma pasiva.'
+      }</p>
+      <div class="hud-row"><span>Profundidad de mazmorra</span><strong>${state.dungeonDepth}</strong></div>
     </div>
     ${renderCraftSection(state)}
     <div class="hud-section">
@@ -174,7 +188,7 @@ function renderDungeonHud(state: GameState): string {
 
   return `
     <div class="hud-section">
-      <h2>Mazmorra</h2>
+      <h2>Mazmorra · Profundidad ${run.depth}</h2>
       ${statusLine}
       <div class="hud-row"><span>Tu HP</span><strong>${Math.max(run.playerHp, 0)}/${run.playerMaxHp}</strong></div>
       <div class="hud-row"><span>Defensa</span><strong>${run.playerDefense}</strong></div>

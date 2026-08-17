@@ -18,6 +18,14 @@ const ENEMY_DEFS: EnemyDef[] = [
 
 const RUN_LENGTH = 5;
 
+// Escalado por "profundidad" (= cantidad de runs ganadas históricamente,
+// ver GameState.dungeonDepth): cada nivel de profundidad hace a los
+// enemigos más duros pero también más rentables, así siempre hay un
+// próximo hito por el que vale la pena seguir entrando.
+const DEPTH_HP_SCALE = 0.12;
+const DEPTH_ATTACK_SCALE = 0.1;
+const DEPTH_LOOT_SCALE = 0.15;
+
 function randRange([min, max]: [number, number]): number {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
@@ -32,25 +40,33 @@ function pickWeighted(): EnemyDef {
   return ENEMY_DEFS[0];
 }
 
-export function generateEnemyQueue(): DungeonEnemyInstance[] {
+export function generateEnemyQueue(depth: number): DungeonEnemyInstance[] {
+  const hpMult = 1 + Math.max(0, depth) * DEPTH_HP_SCALE;
+  const attackMult = 1 + Math.max(0, depth) * DEPTH_ATTACK_SCALE;
+
   const queue: DungeonEnemyInstance[] = [];
   for (let i = 0; i < RUN_LENGTH; i++) {
     const def = pickWeighted();
+    const maxHp = Math.max(1, Math.round(def.maxHp * hpMult));
     queue.push({
       kind: def.kind,
       label: def.label,
-      maxHp: def.maxHp,
-      hp: def.maxHp,
-      attack: def.attack,
+      maxHp,
+      hp: maxHp,
+      attack: Math.max(1, Math.round(def.attack * attackMult)),
     });
   }
   return queue;
 }
 
-export function rollLoot(kind: EnemyKind): { wood: number; stone: number } {
+export function rollLoot(kind: EnemyKind, depth: number): { wood: number; stone: number } {
   const def = ENEMY_DEFS.find((d) => d.kind === kind);
   if (!def) return { wood: 0, stone: 0 };
-  return { wood: randRange(def.lootWood), stone: randRange(def.lootStone) };
+  const lootMult = 1 + Math.max(0, depth) * DEPTH_LOOT_SCALE;
+  return {
+    wood: Math.round(randRange(def.lootWood) * lootMult),
+    stone: Math.round(randRange(def.lootStone) * lootMult),
+  };
 }
 
 export function enemyColor(kind: EnemyKind): string {

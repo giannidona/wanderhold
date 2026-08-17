@@ -1,6 +1,7 @@
 import type { GameState } from '../types';
 import { generateEnemyQueue } from './enemies';
 import { totalDefense } from '../state/craft';
+import { addResourceCapped } from '../state/buildings';
 
 export const DEFEAT_LOOT_RETENTION = 0.5;
 const NODE_RESPAWN_RATIO = 0.3;
@@ -10,7 +11,7 @@ export function enterDungeon(state: GameState): void {
 
   state.scene = 'dungeon';
   state.dungeon = {
-    enemies: generateEnemyQueue(),
+    enemies: generateEnemyQueue(state.dungeonDepth),
     currentEnemyIndex: 0,
     playerHp: state.player.combat.maxHp,
     playerMaxHp: state.player.combat.maxHp,
@@ -20,6 +21,10 @@ export function enterDungeon(state: GameState): void {
     lootStone: 0,
     log: [{ id: 0, text: 'Entrás a la mazmorra...' }],
     outcome: null,
+    // Snapshot: aunque el jugador gane otras runs mientras ésta está en
+    // curso (no debería poder, pero por las dudas), esta run sigue
+    // escalada a la profundidad con la que entró.
+    depth: state.dungeonDepth,
   };
 }
 
@@ -33,8 +38,12 @@ export function exitDungeon(state: GameState): void {
   }
 
   const retention = run.outcome === 'defeat' ? DEFEAT_LOOT_RETENTION : 1;
-  state.inventory.wood += Math.floor(run.lootWood * retention);
-  state.inventory.stone += Math.floor(run.lootStone * retention);
+  addResourceCapped(state, 'wood', Math.floor(run.lootWood * retention));
+  addResourceCapped(state, 'stone', Math.floor(run.lootStone * retention));
+
+  if (run.outcome === 'victory') {
+    state.dungeonDepth += 1;
+  }
 
   respawnResourceNodes(state);
 

@@ -22,7 +22,7 @@ export function tickCombat(run: DungeonRunState): void {
   pushLog(run, `Golpeás a ${enemy.label} por ${run.playerAttack} (${Math.max(enemy.hp, 0)}/${enemy.maxHp} HP).`);
 
   if (enemy.hp <= 0) {
-    const loot = rollLoot(enemy.kind);
+    const loot = rollLoot(enemy.kind, run.depth);
     run.lootWood += loot.wood;
     run.lootStone += loot.stone;
     pushLog(run, `${enemy.label} cae. Botín: +${loot.wood} madera, +${loot.stone} piedra.`);

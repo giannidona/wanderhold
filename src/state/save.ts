@@ -1,7 +1,8 @@
 import type { GameState } from '../types';
 
-// v5: nuevo recurso Hierro (inventory.iron) y edificio Herrería (BuildingKind).
-const SAVE_KEY = 'wanderhold-save-v5';
+// v6: DungeonRunState ahora requiere `depth` (campo no-opcional, no tiene
+// default seguro vía spread-merge porque `dungeon` se carga entero o null).
+const SAVE_KEY = 'wanderhold-save-v6';
 
 export function saveGame(state: GameState): void {
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));

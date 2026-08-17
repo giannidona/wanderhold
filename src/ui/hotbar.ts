@@ -7,13 +7,21 @@ import {
   getArmorLevel,
   getToolLevel,
 } from '../state/craft';
+import iconAxe from '../assets/sprites/icon-axe.png';
+import iconPickaxe from '../assets/sprites/icon-pickaxe.png';
+import iconHelmet from '../assets/sprites/icon-helmet.png';
+import iconChest from '../assets/sprites/icon-chest.png';
+import iconBoots from '../assets/sprites/icon-boots.png';
 
+// Un solo ícono pixel art por tipo (tono metálico neutro) — el tier
+// (Madera/Piedra/Hierro) se resuelve con un filtro CSS por clase `tier-N`
+// en style.css, no hace falta un ícono distinto por tier.
 const ICONS: Record<string, string> = {
-  axe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 19 L15 10" stroke-linecap="round"/><path d="M13 6 Q20 3 20 10 Q15 12.5 11.5 9 Z"/></svg>',
-  pickaxe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12 L18 18" stroke-linecap="round"/><path d="M4 8 Q10 2 20 8 Q13.5 10.2 12 12 Q10.5 10.2 4 8 Z"/></svg>',
-  head: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 15 A7 7 0 0 1 19 15" stroke-linecap="round"/><rect x="4" y="15" width="16" height="2.5" fill="currentColor" stroke="none" rx="1"/></svg>',
-  chest: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 4 L6 8 L6 20 H18 L18 8 L16 4 L12 6.5 Z"/></svg>',
-  boots: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 3 V13.5 H10 L14.5 18 H20 V16 L16 14 V3 Z"/></svg>',
+  axe: iconAxe,
+  pickaxe: iconPickaxe,
+  head: iconHelmet,
+  chest: iconChest,
+  boots: iconBoots,
 };
 
 export function renderHotbar(container: HTMLElement, state: GameState): void {
@@ -39,10 +47,10 @@ export function renderHotbar(container: HTMLElement, state: GameState): void {
   `;
 }
 
-function slotHtml(icon: string, name: string, tierLabel: string, level: number): string {
+function slotHtml(iconSrc: string | undefined, name: string, tierLabel: string, level: number): string {
   return `
     <div class="hotbar-slot tier-${level}" title="${name}: ${tierLabel}">
-      <span class="hotbar-icon">${icon}</span>
+      <span class="hotbar-icon"><img src="${iconSrc ?? ''}" alt="${name}" /></span>
       <span class="hotbar-tier">${tierLabel}</span>
     </div>
   `;

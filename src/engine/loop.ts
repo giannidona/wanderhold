@@ -7,6 +7,7 @@ import { render } from './renderer';
 import { saveGame } from '../state/save';
 import { renderDungeon } from '../dungeon/renderer';
 import { tickCombat } from '../dungeon/combat';
+import { tickPassiveIncome } from '../state/population';
 
 const AUTOSAVE_INTERVAL_MS = 3000;
 const COMBAT_TICK_MS = 700;
@@ -22,6 +23,13 @@ export function startGameLoop(ctx: CanvasRenderingContext2D): void {
   function frame(time: number): void {
     const dt = lastTime ? Math.min((time - lastTime) / 1000, MAX_DT_SECONDS) : 0;
     lastTime = time;
+
+    // Ingreso pasivo por población: corre siempre, incluso en la
+    // mazmorra, para que la aldea no se sienta "pausada" al salir a
+    // combatir.
+    if (tickPassiveIncome(state, time)) {
+      notify();
+    }
 
     if (state.scene === 'village') {
       const moveVec = getMovementVector();

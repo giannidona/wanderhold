@@ -323,9 +323,11 @@ body {
   display: block;
 }
 
-.hotbar-icon svg {
+.hotbar-icon img {
   width: 100%;
   height: 100%;
+  display: block;
+  image-rendering: pixelated;
 }
 
 .hotbar-tier {
@@ -334,8 +336,17 @@ body {
   line-height: 1;
 }
 
+/*
+  Un solo ícono pixel art neutro (metal gris) por herramienta/pieza —
+  el tier (Mano/Madera/Piedra/Hierro) se resuelve recoloreando esa misma
+  imagen con un filtro CSS, sin necesidad de generar 4 versiones por ícono.
+*/
 .hotbar-slot.tier-0 {
   color: #6a6d75;
+}
+
+.hotbar-slot.tier-0 .hotbar-icon img {
+  filter: grayscale(75%) brightness(60%);
 }
 
 .hotbar-slot.tier-1 {
@@ -343,7 +354,22 @@ body {
   border-color: #6b4226;
 }
 
+.hotbar-slot.tier-1 .hotbar-icon img {
+  filter: hue-rotate(-8deg) sepia(75%) saturate(180%) brightness(95%);
+}
+
 .hotbar-slot.tier-2 {
   color: #b7bcc4;
   border-color: #7a7a7a;
+}
+
+/* Tier 2 (Piedra) usa el ícono base tal cual — ya es metal gris neutro. */
+
+.hotbar-slot.tier-3 {
+  color: #8fa3c9;
+  border-color: #3d4a63;
+}
+
+.hotbar-slot.tier-3 .hotbar-icon img {
+  filter: hue-rotate(8deg) grayscale(15%) saturate(115%) brightness(68%) contrast(125%);
 }

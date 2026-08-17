@@ -22,6 +22,8 @@ function createNewState(): GameState {
     village: createInitialVillage(GRID_SIZE, START_TILE),
     dungeon: null,
     pendingBuildTile: null,
+    dungeonDepth: 0,
+    lastPassiveTickAt: 0,
   };
 }
 
