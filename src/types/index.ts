@@ -48,6 +48,11 @@ export interface PlayerState {
   px: number;
   py: number;
   facing: Vector2;
+  // Última dirección horizontal en la que se movió (1 = derecha, -1 =
+  // izquierda). Se usa para espejar el sprite al dibujar; a diferencia de
+  // `facing`, no se resetea al moverse solo en vertical, así el personaje
+  // no "olvida" hacia qué lado estaba mirando.
+  facingDir: 1 | -1;
   tools: Tools;
   armor: Armor;
   combat: CombatStats;

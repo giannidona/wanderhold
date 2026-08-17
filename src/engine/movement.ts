@@ -43,6 +43,11 @@ export function updatePlayerMovement(state: GameState, moveVec: Vector2, dtSecon
   if (moveVec.x === 0 && moveVec.y === 0) return;
 
   state.player.facing = moveVec;
+  // Solo actualiza la dirección horizontal si hay movimiento en X — así
+  // moverse solo en vertical (W/S) no "resetea" hacia qué lado mira.
+  if (moveVec.x !== 0) {
+    state.player.facingDir = moveVec.x > 0 ? 1 : -1;
+  }
 
   const speedPx = SPEED_TILES_PER_SEC * TILE_SIZE;
   moveAxis(state, moveVec.x * speedPx * dtSeconds, 'x');

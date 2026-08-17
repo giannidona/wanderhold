@@ -13,6 +13,7 @@ function createNewState(): GameState {
       px: START_TILE.x * TILE_SIZE + TILE_SIZE / 2,
       py: START_TILE.y * TILE_SIZE + TILE_SIZE / 2,
       facing: { x: 0, y: 1 },
+      facingDir: 1,
       tools: { axeLevel: 0, pickaxeLevel: 0 },
       armor: { head: 0, chest: 0, boots: 0 },
       combat: { maxHp: 20, attack: 4 },

@@ -14,6 +14,7 @@ Juego 2D de gestión/mazmorra (aldea + dungeon runs), inspirado libremente en Lo
 - Muerte en mazmorra: conservás 50% del botín acumulado en esa run.
 - Al terminar la run (victoria o derrota) aparece una pantalla de resultado sobre el canvas con el botín ganado (ya con el 50% de penalidad aplicado si fue derrota) y un botón "Volver a la aldea" — el regreso ya no es automático por tiempo, es una acción del jugador. Al volver se repuebla ~30% de los nodos de recursos agotados.
 - Autoguardado en localStorage cada ~3s (save key `wanderhold-save-v5`, bumpeada por el recurso Hierro y el edificio Herrería — saves de versiones anteriores se descartan solos).
+- Arte de la aldea (Fase 1, completa): pasto (2 variantes en damero), árbol, roca, hierro, taller, herrería, choza y personaje son sprites pixel art de 32×32 generados con IA (Gemini) — ver `ART_PROMPTS.md` para los prompts y `src/engine/sprites.ts` para cómo se cargan. La mazmorra y los íconos del hotbar todavía usan las formas geométricas placeholder (Fase 2/3 pendientes).
 
 ## Correr en local
 
@@ -40,11 +41,12 @@ Pensado para Vercel: framework preset "Vite", sin variables de entorno ni backen
 ```
 src/
   constants.ts   TILE_SIZE, PLAYER_RADIUS (compartidos por engine y state)
-  engine/        game loop (branch por escena), input (vector libre), colisión, movimiento, gathering, render de la aldea
+  engine/        game loop (branch por escena), input (vector libre), colisión, movimiento, gathering, render de la aldea, carga de sprites
   state/         estado del juego, generación de la aldea, edificios, craft, save/load
   dungeon/       generación de enemigos, resolución de combate, render de la escena de mazmorra (piso + siluetas por enemigo)
   ui/            HUD (panel lateral), hotbar (tiers de herramientas/armadura), y overlay de resultado de mazmorra (botín + volver a la aldea)
   types/         tipos compartidos
+  assets/sprites/ sprites pixel art 32x32 PNG (aldea, Fase 1) usados por engine/renderer.ts vía engine/sprites.ts
 ```
 
 ## Git
@@ -53,7 +55,8 @@ El repo ya está versionado (remote `git@github.com:giannidona/wanderhold.git`) 
 
 ## Pendiente de definir
 
-- Dirección de arte final (pixel vs flat/geométrico) — el render actual es placeholder geométrico en ambas escenas. Los íconos del hotbar son SVG lineales simples, mismo criterio.
+- Arte de mazmorra (Fase 2: pisos, sprite de combate del jugador, 3 enemigos) e íconos del hotbar (Fase 3) — prompts ya listos en `ART_PROMPTS.md`, todavía no generados. Hoy siguen con formas geométricas / SVG lineal placeholder.
+- Sprite direccional del jugador: hoy es una sola imagen estática (mira siempre "de frente"), no rota según hacia dónde te movés.
 - Tier de Diamante (y más allá) para herramientas/armadura: la tabla de tiers en `state/craft.ts` está armada para sumar filas nuevas sin tocar el resto de la lógica.
 - Costo de armadura es uniforme entre los 3 slots hoy; diferenciar Pechera (más cara) es una mejora simple pendiente.
 - Velocidad de movimiento (4.5 tiles/seg), radio de colisión y tiempo de regeneración de recursos (60s, sin aviso visual) son primeros números, a ajustar jugándolo.
