@@ -8,6 +8,8 @@ import { saveGame } from '../state/save';
 import { renderDungeon } from '../dungeon/renderer';
 import { tickCombat } from '../dungeon/combat';
 import { tickPassiveIncome } from '../state/population';
+import { tickQuests } from '../state/quests';
+import { showToast, formatResourceGain } from '../ui/toasts';
 
 const AUTOSAVE_INTERVAL_MS = 3000;
 const COMBAT_TICK_MS = 700;
@@ -28,6 +30,18 @@ export function startGameLoop(ctx: CanvasRenderingContext2D): void {
     // mazmorra, para que la aldea no se sienta "pausada" al salir a
     // combatir.
     if (tickPassiveIncome(state, time)) {
+      notify();
+    }
+
+    // Objetivos: se revisan siempre, no solo en la aldea, para que una
+    // quest de "derrotá N enemigos" se complete apenas se cumple, incluso
+    // a mitad de un combate.
+    const completedQuests = tickQuests(state);
+    if (completedQuests.length > 0) {
+      for (const completion of completedQuests) {
+        const gainText = formatResourceGain(completion.gained);
+        showToast(`¡Objetivo completado: ${completion.label}!${gainText ? ` ${gainText}` : ''}`);
+      }
       notify();
     }
 
@@ -54,7 +68,7 @@ export function startGameLoop(ctx: CanvasRenderingContext2D): void {
       const run = state.dungeon;
 
       if (!run.outcome && time - lastCombatTime > COMBAT_TICK_MS) {
-        tickCombat(run);
+        tickCombat(run, state.stats);
         lastCombatTime = time;
         notify();
       }

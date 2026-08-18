@@ -43,6 +43,7 @@ export function exitDungeon(state: GameState): void {
 
   if (run.outcome === 'victory') {
     state.dungeonDepth += 1;
+    state.stats.dungeonWins += 1;
   }
 
   respawnResourceNodes(state);

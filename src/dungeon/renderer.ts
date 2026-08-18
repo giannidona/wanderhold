@@ -23,10 +23,28 @@ function tileHash(x: number, y: number): number {
 // con el mismo offset de "piso" alcanza para que los pies de todos
 // queden a la misma altura sin necesitar ajustar caso por caso.
 const GROUND_OFFSET = 20;
+const BOSS_COLOR = '#e8c15a';
+const BOSS_SCALE = 1.4;
 
-function drawGrounded(ctx: CanvasRenderingContext2D, img: HTMLImageElement, centerX: number, groundY: number): void {
+function drawGrounded(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  centerX: number,
+  groundY: number,
+  scale = 1,
+  glow = false
+): void {
   if (!isImageReady(img)) return;
-  ctx.drawImage(img, centerX - img.width / 2, groundY - img.height + GROUND_OFFSET);
+  const w = img.width * scale;
+  const h = img.height * scale;
+
+  if (glow) {
+    ctx.save();
+    ctx.shadowColor = BOSS_COLOR;
+    ctx.shadowBlur = 20;
+  }
+  ctx.drawImage(img, centerX - w / 2, groundY - h + GROUND_OFFSET * scale, w, h);
+  if (glow) ctx.restore();
 }
 
 export function renderDungeon(ctx: CanvasRenderingContext2D, state: GameState): void {
@@ -44,8 +62,9 @@ export function renderDungeon(ctx: CanvasRenderingContext2D, state: GameState): 
 
   const enemy = run.enemies[run.currentEnemyIndex];
   if (enemy && !run.outcome) {
-    drawGrounded(ctx, enemySprite(enemy.kind), canvas.width * 0.72, midY);
-    drawHpBar(ctx, canvas.width * 0.72, midY + 46, enemy.hp, enemy.maxHp, enemy.label);
+    const scale = enemy.isBoss ? BOSS_SCALE : 1;
+    drawGrounded(ctx, enemySprite(enemy.kind), canvas.width * 0.72, midY, scale, enemy.isBoss);
+    drawHpBar(ctx, canvas.width * 0.72, midY + 46, enemy.hp, enemy.maxHp, enemy.label, enemy.isBoss);
   }
 
   drawUpcomingQueue(ctx, canvas, run);
@@ -79,10 +98,11 @@ function drawHpBar(
   y: number,
   hp: number,
   maxHp: number,
-  label: string
+  label: string,
+  isBoss = false
 ): void {
-  ctx.fillStyle = TEXT_COLOR;
-  ctx.font = '12px sans-serif';
+  ctx.fillStyle = isBoss ? BOSS_COLOR : TEXT_COLOR;
+  ctx.font = isBoss ? 'bold 12px sans-serif' : '12px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(label, x, y - 8);
 
@@ -94,6 +114,12 @@ function drawHpBar(
   ctx.fillRect(barX, y, barWidth, 10);
   ctx.fillStyle = ratio > 0.4 ? '#5fae5f' : '#c25b4b';
   ctx.fillRect(barX, y, barWidth * ratio, 10);
+
+  if (isBoss) {
+    ctx.strokeStyle = BOSS_COLOR;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(barX - 1, y - 1, barWidth + 2, 12);
+  }
 
   ctx.fillStyle = TEXT_COLOR;
   ctx.font = '10px sans-serif';
@@ -111,6 +137,14 @@ function drawUpcomingQueue(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElem
     ctx.beginPath();
     ctx.arc(cx, y, 8, 0, Math.PI * 2);
     ctx.fill();
+
+    if (e.isBoss) {
+      ctx.strokeStyle = BOSS_COLOR;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, y, 11, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   });
 }
 

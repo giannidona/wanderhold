@@ -1,4 +1,4 @@
-import type { DungeonRunState } from '../types';
+import type { DungeonRunState, QuestStats } from '../types';
 import { rollLoot } from './enemies';
 
 let logIdCounter = 0;
@@ -9,7 +9,7 @@ function pushLog(run: DungeonRunState, text: string): void {
   if (run.log.length > 40) run.log.shift();
 }
 
-export function tickCombat(run: DungeonRunState): void {
+export function tickCombat(run: DungeonRunState, stats: QuestStats): void {
   if (run.outcome) return;
 
   const enemy = run.enemies[run.currentEnemyIndex];
@@ -22,10 +22,16 @@ export function tickCombat(run: DungeonRunState): void {
   pushLog(run, `Golpeás a ${enemy.label} por ${run.playerAttack} (${Math.max(enemy.hp, 0)}/${enemy.maxHp} HP).`);
 
   if (enemy.hp <= 0) {
-    const loot = rollLoot(enemy.kind, run.depth);
+    stats.enemiesDefeated += 1;
+    const loot = rollLoot(enemy.kind, run.depth, enemy.isBoss);
     run.lootWood += loot.wood;
     run.lootStone += loot.stone;
-    pushLog(run, `${enemy.label} cae. Botín: +${loot.wood} madera, +${loot.stone} piedra.`);
+    pushLog(
+      run,
+      enemy.isBoss
+        ? `¡Derrotaste a ${enemy.label}! Botín de jefe: +${loot.wood} madera, +${loot.stone} piedra.`
+        : `${enemy.label} cae. Botín: +${loot.wood} madera, +${loot.stone} piedra.`
+    );
     run.currentEnemyIndex += 1;
 
     if (run.currentEnemyIndex >= run.enemies.length) {

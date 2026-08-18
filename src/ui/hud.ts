@@ -1,6 +1,8 @@
 import type { GameState } from '../types';
-import { BUILDING_DEFS, canAfford, getInventoryCap, hasForge, hasWorkshop, type BuildingCost } from '../state/buildings';
+import { BUILDING_DEFS, canAfford, getBuildingCost, getInventoryCap, hasForge, hasWorkshop, type BuildingCost } from '../state/buildings';
 import { getPopulation, WOOD_PER_POPULATION } from '../state/population';
+import { isBossDepth } from '../dungeon/enemies';
+import { getQuestProgress } from '../state/quests';
 import {
   ARMOR_SLOTS,
   ARMOR_TIERS,
@@ -45,6 +47,7 @@ function renderVillageHud(state: GameState): string {
       <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}/${cap}</strong></div>
       <div class="hud-row"><span>Hierro</span><strong>${state.inventory.iron}/${cap}</strong></div>
     </div>
+    ${renderQuestsSection(state)}
     <div class="hud-section">
       <h2>Aldea</h2>
       <div class="hud-row"><span>Población</span><strong>${population}</strong></div>
@@ -54,6 +57,7 @@ function renderVillageHud(state: GameState): string {
           : 'Construí una Choza para conseguir tu primer poblador y empezar a juntar madera de forma pasiva.'
       }</p>
       <div class="hud-row"><span>Profundidad de mazmorra</span><strong>${state.dungeonDepth}</strong></div>
+      ${isBossDepth(state.dungeonDepth) ? '<p class="hud-hint hud-hint--boss">La próxima run termina con un jefe.</p>' : ''}
     </div>
     ${renderCraftSection(state)}
     <div class="hud-section">
@@ -62,6 +66,28 @@ function renderVillageHud(state: GameState): string {
     <div class="hud-section">
       <h2>Controles</h2>
       <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol/roca/vena de hierro para recolectar (rocas necesitan Pico de Madera, hierro necesita Pico de Piedra). Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
+    </div>
+  `;
+}
+
+function renderQuestsSection(state: GameState): string {
+  const rows = state.quests
+    .map((quest) => {
+      const progress = getQuestProgress(state.stats, quest);
+      const pct = Math.min(100, Math.round((progress / quest.targetAmount) * 100));
+      return `
+        <div class="quest-row">
+          <div class="quest-row-top"><span>${quest.label}</span><span>${progress}/${quest.targetAmount}</span></div>
+          <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="hud-section">
+      <h2>Objetivos</h2>
+      ${rows}
     </div>
   `;
 }
@@ -143,7 +169,8 @@ function renderBuildPanel(state: GameState): string {
   if (!tile) return renderVillageHud(state);
 
   const rows = BUILDING_DEFS.map((def) => {
-    const affordable = canAfford(state, def.cost);
+    const cost = getBuildingCost(state, def.kind);
+    const affordable = canAfford(state, cost);
     return `
       <button
         class="build-option${affordable ? '' : ' build-option--disabled'}"
@@ -151,7 +178,7 @@ function renderBuildPanel(state: GameState): string {
         ${affordable ? '' : 'disabled'}
       >
         <span class="build-option-label">${def.label}</span>
-        <span class="build-option-cost">${formatCost(def.cost)}</span>
+        <span class="build-option-cost">${formatCost(cost)}</span>
         <span class="build-option-desc">${def.description}</span>
       </button>
     `;
@@ -178,7 +205,14 @@ function renderDungeonHud(state: GameState): string {
       ? '<p class="hud-outcome hud-outcome--win">Mazmorra despejada</p>'
       : run.outcome === 'defeat'
         ? '<p class="hud-outcome hud-outcome--lose">Caíste en combate</p>'
-        : `<p class="hud-hint">Enemigo ${progress}${enemy ? `: ${enemy.label}` : ''}</p>`;
+        : enemy?.isBoss
+          ? `<p class="hud-hint hud-hint--boss">Enemigo ${progress}: ${enemy.label} — ¡jefe de profundidad!</p>`
+          : `<p class="hud-hint">Enemigo ${progress}${enemy ? `: ${enemy.label}` : ''}</p>`;
+
+  const bossWarning =
+    !run.outcome && !enemy?.isBoss && run.enemies[run.enemies.length - 1]?.isBoss
+      ? '<p class="hud-hint hud-hint--boss">Esta run termina con un jefe. Preparate.</p>'
+      : '';
 
   const logHtml = run.log
     .slice(-10)
@@ -190,6 +224,7 @@ function renderDungeonHud(state: GameState): string {
     <div class="hud-section">
       <h2>Mazmorra · Profundidad ${run.depth}</h2>
       ${statusLine}
+      ${bossWarning}
       <div class="hud-row"><span>Tu HP</span><strong>${Math.max(run.playerHp, 0)}/${run.playerMaxHp}</strong></div>
       <div class="hud-row"><span>Defensa</span><strong>${run.playerDefense}</strong></div>
       <div class="hud-row"><span>Botín (run)</span><strong>${run.lootWood} madera / ${run.lootStone} piedra</strong></div>

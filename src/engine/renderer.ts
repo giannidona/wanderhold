@@ -1,6 +1,8 @@
 import type { BuildingKind, GameState } from '../types';
 import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
 import { isImageReady, sprites } from './sprites';
+import { isPlayerTouchingNode } from './gather';
+import { drawFloatingTexts } from './floatingText';
 
 export { TILE_SIZE };
 
@@ -10,6 +12,9 @@ const COLORS = {
   hitLabel: 'rgba(0,0,0,0.65)',
   pendingTile: 'rgba(224, 179, 77, 0.35)',
   playerFallback: '#e0b34d',
+  nodeHpBarBg: 'rgba(15, 15, 15, 0.75)',
+  nodeHpBarFill: '#8bd17c',
+  nodeHpBarFillLow: '#d17c6c',
 };
 
 export function setupCanvas(canvas: HTMLCanvasElement, gridSize: number): void {
@@ -80,9 +85,12 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
     if (node.kind === 'stone' && pickaxeLevel < 1) drawLockIcon(ctx, px + 16, py + 9);
     if (node.kind === 'iron' && pickaxeLevel < 2) drawLockIcon(ctx, px + 16, py + 9);
 
-    ctx.fillStyle = COLORS.hitLabel;
-    ctx.font = '9px sans-serif';
-    ctx.fillText(String(node.hitsRemaining), px + 23, py + 30);
+    // La "vida" del nodo (golpes restantes) solo se muestra mientras el
+    // jugador lo está tocando/minando, para no saturar el mapa con barras
+    // sobre árboles/rocas todavía intactos que nadie está atacando.
+    if (isPlayerTouchingNode(state, node)) {
+      drawNodeHpBar(ctx, px, py, node.hitsRemaining, node.maxHits);
+    }
   }
 
   for (const building of state.village.buildings) {
@@ -92,7 +100,9 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   const p = state.player;
 
   if (isImageReady(sprites.player)) {
-    if (p.facingDir === -1) {
+    // El sprite base mira hacia la izquierda, así que hay que espejarlo
+    // cuando el jugador se mueve a la derecha (facingDir=1), no al revés.
+    if (p.facingDir === 1) {
       // Espeja el sprite en X: movemos el origen al centro del personaje,
       // invertimos la escala horizontal, y dibujamos offseteado hacia
       // atrás para que quede centrado igual que en el caso sin espejar.
@@ -110,6 +120,36 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.arc(p.px, p.py, PLAYER_RADIUS, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // Siempre al final, por encima de todo lo demás (jugador incluido), así
+  // el "+n" de un recurso recién recolectado nunca queda tapado.
+  drawFloatingTexts(ctx);
+}
+
+function drawNodeHpBar(ctx: CanvasRenderingContext2D, px: number, py: number, hits: number, maxHits: number): void {
+  const barWidth = TILE_SIZE - 6;
+  const barX = px + 3;
+  const barY = py + 3;
+  const ratio = Math.max(hits, 0) / maxHits;
+
+  ctx.fillStyle = COLORS.nodeHpBarBg;
+  ctx.fillRect(barX, barY, barWidth, 5);
+  ctx.fillStyle = ratio > 0.4 ? COLORS.nodeHpBarFill : COLORS.nodeHpBarFillLow;
+  ctx.fillRect(barX, barY, barWidth * ratio, 5);
+
+  // Texto con contorno oscuro para que se lea igual de bien sobre pasto,
+  // piedra o cualquier sprite de fondo.
+  const label = `${hits}/${maxHits}`;
+  const textX = px + TILE_SIZE / 2;
+  const textY = py + 20;
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+  ctx.strokeText(label, textX, textY);
+  ctx.fillStyle = '#eae6da';
+  ctx.fillText(label, textX, textY);
+  ctx.textAlign = 'left';
 }
 
 function drawLockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {

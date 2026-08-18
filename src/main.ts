@@ -4,6 +4,7 @@ import { startGameLoop } from './engine/loop';
 import { renderHud } from './ui/hud';
 import { renderHotbar } from './ui/hotbar';
 import { renderDungeonResult } from './ui/dungeonResult';
+import { initToasts } from './ui/toasts';
 import { state, subscribe, notify } from './state/store';
 import { enterDungeon, exitDungeon } from './dungeon';
 import { isTileFree } from './state/village';
@@ -18,9 +19,10 @@ const canvasEl = document.querySelector<HTMLCanvasElement>('#village-canvas');
 const hudEl = document.querySelector<HTMLElement>('#hud');
 const hotbarEl = document.querySelector<HTMLElement>('#hotbar');
 const dungeonResultEl = document.querySelector<HTMLElement>('#dungeon-result');
+const toastsEl = document.querySelector<HTMLElement>('#toasts');
 
-if (!canvasEl || !hudEl || !hotbarEl || !dungeonResultEl) {
-  throw new Error('Faltan elementos base en el DOM (#village-canvas / #hud / #hotbar / #dungeon-result).');
+if (!canvasEl || !hudEl || !hotbarEl || !dungeonResultEl || !toastsEl) {
+  throw new Error('Faltan elementos base en el DOM (#village-canvas / #hud / #hotbar / #dungeon-result / #toasts).');
 }
 
 const canvas: HTMLCanvasElement = canvasEl;
@@ -28,6 +30,7 @@ const hud: HTMLElement = hudEl;
 const hotbar: HTMLElement = hotbarEl;
 const dungeonResult: HTMLElement = dungeonResultEl;
 
+initToasts(toastsEl);
 setupCanvas(canvas, state.village.gridSize);
 const ctx = canvas.getContext('2d');
 

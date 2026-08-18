@@ -1,12 +1,22 @@
-import type { GameState } from '../types';
+import type { GameState, QuestStats } from '../types';
 import { createInitialVillage } from './village';
 import { loadGame } from './save';
 import { TILE_SIZE } from '../constants';
+import { initialQuests } from './quests';
 
 const GRID_SIZE = 20;
 const START_TILE = { x: 10, y: 10 };
 
 function createNewState(): GameState {
+  const stats: QuestStats = {
+    lifetimeWood: 0,
+    lifetimeStone: 0,
+    lifetimeIron: 0,
+    dungeonWins: 0,
+    enemiesDefeated: 0,
+    buildingsBuilt: 0,
+  };
+
   return {
     scene: 'village',
     player: {
@@ -24,6 +34,8 @@ function createNewState(): GameState {
     pendingBuildTile: null,
     dungeonDepth: 0,
     lastPassiveTickAt: 0,
+    stats,
+    quests: initialQuests(stats),
   };
 }
 
