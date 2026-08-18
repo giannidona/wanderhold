@@ -3,6 +3,7 @@ import { circleRectOverlap, tileRect } from './collision';
 import { PLAYER_RADIUS, RESOURCE_REGEN_MS, TILE_SIZE } from '../constants';
 import { addResourceCapped } from '../state/buildings';
 import { spawnFloatingText } from './floatingText';
+import { getForagerCooldownMultiplier } from '../state/progression';
 
 const GATHER_COOLDOWN_MS = 450;
 export const GATHER_RADIUS = PLAYER_RADIUS + 4;
@@ -40,8 +41,9 @@ export function tickGathering(state: GameState, now: number): void {
 
     if (!isPlayerTouchingNode(state, node)) continue;
 
+    const cooldown = GATHER_COOLDOWN_MS * getForagerCooldownMultiplier(state.progression);
     const last = lastGatherAt.get(node.id) ?? 0;
-    if (now - last < GATHER_COOLDOWN_MS) continue;
+    if (now - last < cooldown) continue;
     lastGatherAt.set(node.id, now);
 
     const toolLevel = node.kind === 'wood' ? state.player.tools.axeLevel : state.player.tools.pickaxeLevel;

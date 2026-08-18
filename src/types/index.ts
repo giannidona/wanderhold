@@ -145,6 +145,25 @@ export interface ActiveQuest {
   reward: { wood: number; stone: number; iron: number };
 }
 
+// Mejoras permanentes elegidas al subir de nivel (ver state/progression.ts).
+// Son acumulables: elegir el mismo perk varias veces suma su bonus otra
+// vez, en vez de ser un "unlock" de una sola vez.
+export type PerkKind = 'vigor' | 'strength' | 'resilience' | 'prospector' | 'forager';
+
+export interface PlayerProgression {
+  level: number;
+  xp: number;
+  // XP necesaria para pasar de `level` a `level + 1`. Se recalcula en cada
+  // level-up (crece con el nivel), así queda guardada en el save sin tener
+  // que reconstruir la fórmula al cargar.
+  xpToNext: number;
+  perkCounts: Record<PerkKind, number>;
+  // Si no es null, el jugador tiene un level-up sin resolver: debe elegir
+  // uno de estos 3 perks antes de poder seguir subiendo de nivel (un XP
+  // grant grande no salta niveles sin que el jugador elija en el medio).
+  pendingChoice: PerkKind[] | null;
+}
+
 export interface GameState {
   scene: Scene;
   player: PlayerState;
@@ -163,4 +182,5 @@ export interface GameState {
   // reemplaza automáticamente por uno nuevo, así siempre hay una meta
   // concreta visible en el HUD de aldea.
   quests: ActiveQuest[];
+  progression: PlayerProgression;
 }

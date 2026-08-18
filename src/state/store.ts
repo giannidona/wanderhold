@@ -3,6 +3,7 @@ import { createInitialVillage } from './village';
 import { loadGame } from './save';
 import { TILE_SIZE } from '../constants';
 import { initialQuests } from './quests';
+import { createInitialProgression } from './progression';
 
 const GRID_SIZE = 20;
 const START_TILE = { x: 10, y: 10 };
@@ -36,6 +37,7 @@ function createNewState(): GameState {
     lastPassiveTickAt: 0,
     stats,
     quests: initialQuests(stats),
+    progression: createInitialProgression(),
   };
 }
 

@@ -10,10 +10,11 @@ import { enterDungeon, exitDungeon } from './dungeon';
 import { isTileFree } from './state/village';
 import { placeBuilding } from './state/buildings';
 import { craftArmor, craftTool, type ArmorSlot, type ToolKind } from './state/craft';
+import { choosePerk } from './state/progression';
 import { circleRectOverlap, tileRect } from './engine/collision';
 import { saveGame } from './state/save';
 import { PLAYER_RADIUS, TILE_SIZE } from './constants';
-import type { BuildingKind } from './types';
+import type { BuildingKind, PerkKind } from './types';
 
 const canvasEl = document.querySelector<HTMLCanvasElement>('#village-canvas');
 const hudEl = document.querySelector<HTMLElement>('#hud');
@@ -68,6 +69,14 @@ hud.addEventListener('click', (e) => {
   const buildBtn = target.closest<HTMLElement>('[data-build-kind]');
   const craftToolBtn = target.closest<HTMLElement>('[data-craft-tool]');
   const craftArmorBtn = target.closest<HTMLElement>('[data-craft-armor]');
+  const perkBtn = target.closest<HTMLElement>('[data-perk-kind]');
+
+  if (perkBtn) {
+    const kind = perkBtn.dataset.perkKind as PerkKind;
+    choosePerk(state.progression, kind);
+    notify();
+    return;
+  }
 
   if (target.id === 'enter-dungeon-btn' && state.scene === 'village') {
     enterDungeon(state);

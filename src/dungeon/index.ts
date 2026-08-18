@@ -2,6 +2,7 @@ import type { GameState } from '../types';
 import { generateEnemyQueue } from './enemies';
 import { totalDefense } from '../state/craft';
 import { addResourceCapped } from '../state/buildings';
+import { getResilienceBonus, getStrengthBonus, getVigorBonus, grantXp, XP_PER_WIN } from '../state/progression';
 
 export const DEFEAT_LOOT_RETENTION = 0.5;
 const NODE_RESPAWN_RATIO = 0.3;
@@ -9,14 +10,16 @@ const NODE_RESPAWN_RATIO = 0.3;
 export function enterDungeon(state: GameState): void {
   if (state.scene === 'dungeon') return;
 
+  const maxHp = state.player.combat.maxHp + getVigorBonus(state.progression);
+
   state.scene = 'dungeon';
   state.dungeon = {
     enemies: generateEnemyQueue(state.dungeonDepth),
     currentEnemyIndex: 0,
-    playerHp: state.player.combat.maxHp,
-    playerMaxHp: state.player.combat.maxHp,
-    playerAttack: state.player.combat.attack,
-    playerDefense: totalDefense(state),
+    playerHp: maxHp,
+    playerMaxHp: maxHp,
+    playerAttack: state.player.combat.attack + getStrengthBonus(state.progression),
+    playerDefense: totalDefense(state) + getResilienceBonus(state.progression),
     lootWood: 0,
     lootStone: 0,
     log: [{ id: 0, text: 'Entrás a la mazmorra...' }],
@@ -44,6 +47,7 @@ export function exitDungeon(state: GameState): void {
   if (run.outcome === 'victory') {
     state.dungeonDepth += 1;
     state.stats.dungeonWins += 1;
+    grantXp(state.progression, XP_PER_WIN);
   }
 
   respawnResourceNodes(state);

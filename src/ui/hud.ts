@@ -3,6 +3,7 @@ import { BUILDING_DEFS, canAfford, getBuildingCost, getInventoryCap, hasForge, h
 import { getPopulation, WOOD_PER_POPULATION } from '../state/population';
 import { isBossDepth } from '../dungeon/enemies';
 import { getQuestProgress } from '../state/quests';
+import { formatPerkBonus, PERK_DEFS } from '../state/progression';
 import {
   ARMOR_SLOTS,
   ARMOR_TIERS,
@@ -40,32 +41,109 @@ function renderVillageHud(state: GameState): string {
   const cap = getInventoryCap(state);
   const population = getPopulation(state);
 
+  // Dos columnas: izquierda = progreso del personaje (nivel/perks +
+  // herramientas/armadura), derecha = todo lo relacionado a la aldea
+  // (inventario, objetivos, edificios/población). El botón de mazmorra y
+  // los controles quedan abajo, a todo el ancho, porque no son de ningún
+  // lado en particular.
   return `
-    <div class="hud-section">
-      <h2>Inventario</h2>
-      <div class="hud-row"><span>Madera</span><strong>${state.inventory.wood}/${cap}</strong></div>
-      <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}/${cap}</strong></div>
-      <div class="hud-row"><span>Hierro</span><strong>${state.inventory.iron}/${cap}</strong></div>
+    <div class="hud-columns">
+      <div class="hud-col hud-col--left">
+        ${renderProgressionSection(state)}
+        ${renderCraftSection(state)}
+      </div>
+      <div class="hud-col hud-col--right">
+        <div class="hud-section">
+          <h2>Inventario</h2>
+          <div class="hud-row"><span>Madera</span><strong>${state.inventory.wood}/${cap}</strong></div>
+          <div class="hud-row"><span>Piedra</span><strong>${state.inventory.stone}/${cap}</strong></div>
+          <div class="hud-row"><span>Hierro</span><strong>${state.inventory.iron}/${cap}</strong></div>
+        </div>
+        ${renderQuestsSection(state)}
+        <div class="hud-section">
+          <h2>Aldea</h2>
+          <div class="hud-row"><span>Población</span><strong>${population}</strong></div>
+          <p class="hud-hint">${
+            population > 0
+              ? `Tus ${population} pobladores juntan +${population * WOOD_PER_POPULATION} madera cada 10s de forma pasiva (incluso en la mazmorra).`
+              : 'Construí una Choza para conseguir tu primer poblador y empezar a juntar madera de forma pasiva.'
+          }</p>
+          <div class="hud-row"><span>Profundidad de mazmorra</span><strong>${state.dungeonDepth}</strong></div>
+          ${isBossDepth(state.dungeonDepth) ? '<p class="hud-hint hud-hint--boss">La próxima run termina con un jefe.</p>' : ''}
+        </div>
+      </div>
     </div>
-    ${renderQuestsSection(state)}
-    <div class="hud-section">
-      <h2>Aldea</h2>
-      <div class="hud-row"><span>Población</span><strong>${population}</strong></div>
-      <p class="hud-hint">${
-        population > 0
-          ? `Tus ${population} pobladores juntan +${population * WOOD_PER_POPULATION} madera cada 10s de forma pasiva (incluso en la mazmorra).`
-          : 'Construí una Choza para conseguir tu primer poblador y empezar a juntar madera de forma pasiva.'
-      }</p>
-      <div class="hud-row"><span>Profundidad de mazmorra</span><strong>${state.dungeonDepth}</strong></div>
-      ${isBossDepth(state.dungeonDepth) ? '<p class="hud-hint hud-hint--boss">La próxima run termina con un jefe.</p>' : ''}
-    </div>
-    ${renderCraftSection(state)}
     <div class="hud-section">
       <button id="enter-dungeon-btn" type="button" class="primary-btn">Entrar a la mazmorra</button>
     </div>
     <div class="hud-section">
       <h2>Controles</h2>
       <p class="hud-hint">WASD para moverte. Quedate en contacto con un árbol/roca/vena de hierro para recolectar (rocas necesitan Pico de Madera, hierro necesita Pico de Piedra). Clickeá un tile vacío del grid para construir. Guardado automático en localStorage.</p>
+    </div>
+  `;
+}
+
+function renderProgressionSection(state: GameState): string {
+  return `${renderLevelSection(state)}${renderPerkSummarySection(state)}`;
+}
+
+function renderLevelSection(state: GameState): string {
+  const prog = state.progression;
+
+  if (prog.pendingChoice) {
+    const options = prog.pendingChoice
+      .map((kind) => {
+        const def = PERK_DEFS.find((d) => d.kind === kind);
+        if (!def) return '';
+        return `
+          <button class="perk-option" data-perk-kind="${kind}" type="button">
+            <span class="perk-option-label">${def.label}</span>
+            <span class="perk-option-desc">${def.description}</span>
+          </button>
+        `;
+      })
+      .join('');
+
+    return `
+      <div class="hud-section hud-section--perk">
+        <h2>¡Subiste a nivel ${prog.level}! Elegí una mejora</h2>
+        <div class="perk-options">${options}</div>
+      </div>
+    `;
+  }
+
+  const pct = Math.min(100, Math.round((prog.xp / prog.xpToNext) * 100));
+  return `
+    <div class="hud-section">
+      <h2>Nivel ${prog.level}</h2>
+      <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
+      <p class="hud-hint">${prog.xp}/${prog.xpToNext} XP — se gana derrotando enemigos y ganando runs de mazmorra.</p>
+    </div>
+  `;
+}
+
+// Resumen siempre visible de cuántos puntos tenés en cada perk y el bono
+// total que te da — independiente de si hay una elección de nivel
+// pendiente o no, así siempre podés ver dónde estás parado.
+function renderPerkSummarySection(state: GameState): string {
+  const prog = state.progression;
+
+  const rows = PERK_DEFS.map((def) => {
+    const count = prog.perkCounts[def.kind];
+    const bonusText = count > 0 ? formatPerkBonus(def.kind, prog) : 'Sin puntos todavía';
+    return `
+      <div class="perk-summary-row${count === 0 ? ' perk-summary-row--empty' : ''}">
+        <span class="perk-summary-label">${def.label}</span>
+        <span class="perk-summary-count">x${count}</span>
+        <span class="perk-summary-bonus">${bonusText}</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="hud-section">
+      <h2>Perks</h2>
+      <div class="perk-summary">${rows}</div>
     </div>
   `;
 }

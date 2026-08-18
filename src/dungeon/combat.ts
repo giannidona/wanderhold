@@ -1,5 +1,6 @@
-import type { DungeonRunState, QuestStats } from '../types';
+import type { DungeonRunState, PlayerProgression, QuestStats } from '../types';
 import { rollLoot } from './enemies';
+import { getProspectorMultiplier, grantXp, XP_PER_BOSS_BONUS, XP_PER_ENEMY } from '../state/progression';
 
 let logIdCounter = 0;
 
@@ -9,7 +10,7 @@ function pushLog(run: DungeonRunState, text: string): void {
   if (run.log.length > 40) run.log.shift();
 }
 
-export function tickCombat(run: DungeonRunState, stats: QuestStats): void {
+export function tickCombat(run: DungeonRunState, stats: QuestStats, progression: PlayerProgression): void {
   if (run.outcome) return;
 
   const enemy = run.enemies[run.currentEnemyIndex];
@@ -23,7 +24,11 @@ export function tickCombat(run: DungeonRunState, stats: QuestStats): void {
 
   if (enemy.hp <= 0) {
     stats.enemiesDefeated += 1;
-    const loot = rollLoot(enemy.kind, run.depth, enemy.isBoss);
+    grantXp(progression, enemy.isBoss ? XP_PER_ENEMY + XP_PER_BOSS_BONUS : XP_PER_ENEMY);
+
+    const rawLoot = rollLoot(enemy.kind, run.depth, enemy.isBoss);
+    const lootMult = getProspectorMultiplier(progression);
+    const loot = { wood: Math.round(rawLoot.wood * lootMult), stone: Math.round(rawLoot.stone * lootMult) };
     run.lootWood += loot.wood;
     run.lootStone += loot.stone;
     pushLog(

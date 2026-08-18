@@ -68,7 +68,7 @@ export function startGameLoop(ctx: CanvasRenderingContext2D): void {
       const run = state.dungeon;
 
       if (!run.outcome && time - lastCombatTime > COMBAT_TICK_MS) {
-        tickCombat(run, state.stats);
+        tickCombat(run, state.stats, state.progression);
         lastCombatTime = time;
         notify();
       }

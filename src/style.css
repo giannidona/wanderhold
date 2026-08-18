@@ -18,7 +18,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: 960px;
+  max-width: 1300px;
   padding: 24px 16px 48px;
 }
 
@@ -59,11 +59,28 @@ body {
 
 #hud {
   flex: 1;
-  min-width: 220px;
+  min-width: 420px;
   background: #1d1f26;
   border: 1px solid #2c2f38;
   border-radius: 8px;
   padding: 16px;
+}
+
+.hud-columns {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hud-col {
+  flex: 1 1 220px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-columns + .hud-section {
+  margin-top: 20px;
 }
 
 .hud-section + .hud-section {
@@ -119,6 +136,98 @@ body {
 .quest-bar-fill {
   height: 100%;
   background: #6fa8dc;
+}
+
+.hud-section--perk {
+  border: 1px solid #e8c15a;
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(232, 193, 90, 0.08);
+}
+
+.hud-section--perk h2 {
+  color: #e8c15a;
+}
+
+.perk-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perk-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  background: #23252d;
+  border: 1px solid #6b5a2c;
+  border-radius: 6px;
+  color: #eae6da;
+  text-align: left;
+  cursor: pointer;
+}
+
+.perk-option:hover {
+  border-color: #e8c15a;
+}
+
+.perk-option-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #e8c15a;
+}
+
+.perk-option-desc {
+  font-size: 0.78rem;
+  color: #a3a7b0;
+}
+
+.perk-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perk-summary-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #23252d;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.perk-summary-label {
+  font-weight: 600;
+  color: #eae6da;
+}
+
+.perk-summary-count {
+  font-size: 0.72rem;
+  color: #e8c15a;
+  background: #16181d;
+  border-radius: 10px;
+  padding: 1px 8px;
+  text-align: center;
+}
+
+.perk-summary-bonus {
+  font-size: 0.78rem;
+  color: #a3a7b0;
+  text-align: right;
+}
+
+.perk-summary-row--empty {
+  opacity: 0.5;
+}
+
+.perk-summary-row--empty .perk-summary-count {
+  color: #8b8f98;
 }
 
 .toasts {
