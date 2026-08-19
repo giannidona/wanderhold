@@ -32,7 +32,7 @@ const hotbar: HTMLElement = hotbarEl;
 const dungeonResult: HTMLElement = dungeonResultEl;
 
 initToasts(toastsEl);
-setupCanvas(canvas, state.village.gridSize);
+setupCanvas(canvas);
 const ctx = canvas.getContext('2d');
 
 if (!ctx) {
@@ -48,13 +48,21 @@ function draw(): void {
 canvas.addEventListener('click', (e) => {
   if (state.scene !== 'village') return;
 
+  // La cámara sigue al jugador (ver engine/renderer.ts), así que el click
+  // en el canvas hay que convertirlo a coordenadas de mundo sumando el
+  // offset de cámara, no asumiendo que canvas = mundo 1:1 como antes.
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  const tileX = Math.floor(((e.clientX - rect.left) * scaleX) / TILE_SIZE);
-  const tileY = Math.floor(((e.clientY - rect.top) * scaleY) / TILE_SIZE);
+  const camX = state.player.px - canvas.width / 2;
+  const camY = state.player.py - canvas.height / 2;
+  const canvasX = (e.clientX - rect.left) * scaleX;
+  const canvasY = (e.clientY - rect.top) * scaleY;
+  const tileX = Math.floor((canvasX + camX) / TILE_SIZE);
+  const tileY = Math.floor((canvasY + camY) / TILE_SIZE);
 
-  if (tileX < 0 || tileY < 0 || tileX >= state.village.gridSize || tileY >= state.village.gridSize) return;
+  // Mundo infinito: ya no hay borde de mapa contra el que validar, solo
+  // que el tile esté libre.
   if (!isTileFree(state.village, tileX, tileY)) return;
 
   const playerOnTile = circleRectOverlap(state.player.px, state.player.py, PLAYER_RADIUS, tileRect(tileX, tileY, TILE_SIZE));

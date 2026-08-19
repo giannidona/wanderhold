@@ -64,9 +64,23 @@ export interface Inventory {
   iron: number;
 }
 
-export interface VillageState {
-  gridSize: number;
+// Un "trozo" de mundo de CHUNK_TILES x CHUNK_TILES tiles (ver
+// constants.ts), generado proceduralmente la primera vez que el jugador se
+// acerca (ver state/village.ts). Clave en VillageState.chunks: `${cx},${cy}`.
+export interface ChunkData {
+  cx: number;
+  cy: number;
   resourceNodes: ResourceNode[];
+}
+
+export interface VillageState {
+  // Semilla del mundo: junto con las coordenadas de cada chunk, determina
+  // de forma determinística qué recursos genera ese chunk la primera vez
+  // que se carga (mismo seed + mismas coords = mismo resultado siempre).
+  seed: number;
+  chunks: Record<string, ChunkData>;
+  // Los edificios los coloca el jugador (no son procedurales), así que
+  // viven en un array plano global en vez de estar repartidos por chunk.
   buildings: Building[];
 }
 

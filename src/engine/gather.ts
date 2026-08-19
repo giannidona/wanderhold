@@ -4,6 +4,7 @@ import { PLAYER_RADIUS, RESOURCE_REGEN_MS, TILE_SIZE } from '../constants';
 import { addResourceCapped } from '../state/buildings';
 import { spawnFloatingText } from './floatingText';
 import { getForagerCooldownMultiplier } from '../state/progression';
+import { getNodesNearTile } from '../state/village';
 
 const GATHER_COOLDOWN_MS = 450;
 export const GATHER_RADIUS = PLAYER_RADIUS + 4;
@@ -35,7 +36,11 @@ export function isPlayerTouchingNode(state: GameState, node: ResourceNode): bool
 // en contacto con un nodo (y tenga la herramienta necesaria), se resuelve
 // un golpe cada GATHER_COOLDOWN_MS.
 export function tickGathering(state: GameState, now: number): void {
-  for (const node of state.village.resourceNodes) {
+  const tileX = Math.floor(state.player.px / TILE_SIZE);
+  const tileY = Math.floor(state.player.py / TILE_SIZE);
+  const nearby = getNodesNearTile(state.village, tileX, tileY);
+
+  for (const node of nearby) {
     if (node.hitsRemaining <= 0) continue;
     if (!canGather(state, node.kind)) continue;
 

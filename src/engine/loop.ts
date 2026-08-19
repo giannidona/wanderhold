@@ -10,6 +10,8 @@ import { tickCombat } from '../dungeon/combat';
 import { tickPassiveIncome } from '../state/population';
 import { tickQuests } from '../state/quests';
 import { showToast, formatResourceGain } from '../ui/toasts';
+import { ensureChunksLoaded } from '../state/village';
+import { TILE_SIZE } from '../constants';
 
 const AUTOSAVE_INTERVAL_MS = 3000;
 const COMBAT_TICK_MS = 700;
@@ -48,6 +50,15 @@ export function startGameLoop(ctx: CanvasRenderingContext2D): void {
     if (state.scene === 'village') {
       const moveVec = getMovementVector();
       updatePlayerMovement(state, moveVec, dt);
+
+      // Genera los chunks que falten alrededor del jugador a medida que
+      // camina — barato (son lookups en un Record) salvo la primera vez
+      // que se pisa un chunk nuevo.
+      ensureChunksLoaded(
+        state.village,
+        Math.floor(state.player.px / TILE_SIZE),
+        Math.floor(state.player.py / TILE_SIZE)
+      );
 
       const woodBefore = state.inventory.wood;
       const stoneBefore = state.inventory.stone;

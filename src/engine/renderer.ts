@@ -3,6 +3,7 @@ import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
 import { isImageReady, sprites } from './sprites';
 import { isPlayerTouchingNode } from './gather';
 import { drawFloatingTexts } from './floatingText';
+import { getNodesInTileRange } from '../state/village';
 
 export { TILE_SIZE };
 
@@ -17,9 +18,17 @@ const COLORS = {
   nodeHpBarFillLow: '#d17c6c',
 };
 
-export function setupCanvas(canvas: HTMLCanvasElement, gridSize: number): void {
-  canvas.width = gridSize * TILE_SIZE;
-  canvas.height = gridSize * TILE_SIZE;
+// El canvas ahora es un viewport fijo, no "todo el mapa" — con mundo
+// infinito ya no hay un tamaño de mapa que darle. La cámara sigue siempre
+// al jugador (centrado), y solo se dibuja lo que entra en este rectángulo
+// más un margen de 1 tile, así el costo de renderizar es constante sin
+// importar cuánto mundo se haya explorado.
+const VIEWPORT_TILES_X = 24;
+const VIEWPORT_TILES_Y = 20;
+
+export function setupCanvas(canvas: HTMLCanvasElement): void {
+  canvas.width = VIEWPORT_TILES_X * TILE_SIZE;
+  canvas.height = VIEWPORT_TILES_Y * TILE_SIZE;
 }
 
 // Proporción de tiles que usan la variante B de pasto. Un damero estricto
@@ -47,35 +56,51 @@ function grassTile(x: number, y: number): HTMLImageElement {
 
 export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   ctx.imageSmoothingEnabled = false;
-  const size = state.village.gridSize;
+  const canvas = ctx.canvas;
 
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
+  // Cámara: esquina superior izquierda del viewport en coordenadas de
+  // mundo. El jugador siempre queda dibujado en el centro exacto del
+  // canvas; todo lo demás se dibuja restando este offset.
+  const camX = state.player.px - canvas.width / 2;
+  const camY = state.player.py - canvas.height / 2;
+
+  const startTileX = Math.floor(camX / TILE_SIZE) - 1;
+  const endTileX = Math.floor((camX + canvas.width) / TILE_SIZE) + 1;
+  const startTileY = Math.floor(camY / TILE_SIZE) - 1;
+  const endTileY = Math.floor((camY + canvas.height) / TILE_SIZE) + 1;
+
+  for (let y = startTileY; y <= endTileY; y++) {
+    for (let x = startTileX; x <= endTileX; x++) {
       const tile = grassTile(x, y);
+      const screenX = x * TILE_SIZE - camX;
+      const screenY = y * TILE_SIZE - camY;
       if (isImageReady(tile)) {
-        ctx.drawImage(tile, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        ctx.drawImage(tile, screenX, screenY, TILE_SIZE, TILE_SIZE);
       } else {
         ctx.fillStyle = tile === sprites.grassB ? COLORS.grassAlt : COLORS.grass;
-        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
       }
     }
   }
 
   if (state.pendingBuildTile) {
     const { x, y } = state.pendingBuildTile;
+    const screenX = x * TILE_SIZE - camX;
+    const screenY = y * TILE_SIZE - camY;
     ctx.fillStyle = COLORS.pendingTile;
-    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
     ctx.strokeStyle = COLORS.playerFallback;
     ctx.lineWidth = 2;
-    ctx.strokeRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+    ctx.strokeRect(screenX + 1, screenY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
   }
 
   const pickaxeLevel = state.player.tools.pickaxeLevel;
+  const visibleNodes = getNodesInTileRange(state.village, startTileX, endTileX, startTileY, endTileY);
 
-  for (const node of state.village.resourceNodes) {
+  for (const node of visibleNodes) {
     if (node.hitsRemaining <= 0) continue;
-    const px = node.x * TILE_SIZE;
-    const py = node.y * TILE_SIZE;
+    const px = node.x * TILE_SIZE - camX;
+    const py = node.y * TILE_SIZE - camY;
 
     const sprite = node.kind === 'wood' ? sprites.tree : node.kind === 'stone' ? sprites.rock : sprites.iron;
     if (isImageReady(sprite)) {
@@ -94,10 +119,26 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   }
 
   for (const building of state.village.buildings) {
-    drawBuilding(ctx, building.x * TILE_SIZE, building.y * TILE_SIZE, building.kind);
+    const worldX = building.x * TILE_SIZE;
+    const worldY = building.y * TILE_SIZE;
+    // Descarte barato de edificios fuera de cámara (el array de edificios
+    // es global, no está indexado por chunk como los recursos).
+    if (
+      worldX + TILE_SIZE < camX ||
+      worldX > camX + canvas.width ||
+      worldY + TILE_SIZE < camY ||
+      worldY > camY + canvas.height
+    ) {
+      continue;
+    }
+    drawBuilding(ctx, worldX - camX, worldY - camY, building.kind);
   }
 
+  // El jugador siempre se dibuja en el centro del viewport — es la cámara
+  // la que se mueve, no él.
   const p = state.player;
+  const screenPx = canvas.width / 2;
+  const screenPy = canvas.height / 2;
 
   if (isImageReady(sprites.player)) {
     // El sprite base mira hacia la izquierda, así que hay que espejarlo
@@ -107,23 +148,54 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
       // invertimos la escala horizontal, y dibujamos offseteado hacia
       // atrás para que quede centrado igual que en el caso sin espejar.
       ctx.save();
-      ctx.translate(p.px, p.py);
+      ctx.translate(screenPx, screenPy);
       ctx.scale(-1, 1);
       ctx.drawImage(sprites.player, -TILE_SIZE / 2, -TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
       ctx.restore();
     } else {
-      ctx.drawImage(sprites.player, p.px - TILE_SIZE / 2, p.py - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
+      ctx.drawImage(sprites.player, screenPx - TILE_SIZE / 2, screenPy - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
     }
   } else {
     ctx.fillStyle = COLORS.playerFallback;
     ctx.beginPath();
-    ctx.arc(p.px, p.py, PLAYER_RADIUS, 0, Math.PI * 2);
+    ctx.arc(screenPx, screenPy, PLAYER_RADIUS, 0, Math.PI * 2);
     ctx.fill();
   }
 
   // Siempre al final, por encima de todo lo demás (jugador incluido), así
-  // el "+n" de un recurso recién recolectado nunca queda tapado.
-  drawFloatingTexts(ctx);
+  // el "+n" de un recurso recién recolectado nunca queda tapado. Los
+  // textos flotantes están en coordenadas de mundo, por eso necesitan el
+  // mismo offset de cámara que todo lo demás.
+  drawFloatingTexts(ctx, camX, camY);
+
+  // Coordenadas in-game, ancladas a la esquina del viewport (no siguen la
+  // cámara, van siempre en el mismo lugar en pantalla) — antes vivían en
+  // el HUD al costado, se movieron acá para no tener que mirar afuera del
+  // juego para saber dónde estás parado.
+  drawCoordsOverlay(ctx, state);
+}
+
+function drawCoordsOverlay(ctx: CanvasRenderingContext2D, state: GameState): void {
+  const tileX = Math.floor(state.player.px / TILE_SIZE);
+  const tileY = Math.floor(state.player.py / TILE_SIZE);
+  const label = `(${tileX}, ${tileY})`;
+
+  ctx.font = 'bold 12px sans-serif';
+  const paddingX = 8;
+  const textWidth = ctx.measureText(label).width;
+  const boxWidth = textWidth + paddingX * 2;
+  const boxHeight = 20;
+  const boxX = 8;
+  const boxY = 8;
+
+  ctx.fillStyle = 'rgba(15, 15, 15, 0.55)';
+  ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+  ctx.fillStyle = '#eae6da';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, boxX + paddingX, boxY + boxHeight / 2 + 1);
+  ctx.textBaseline = 'alphabetic';
 }
 
 function drawNodeHpBar(ctx: CanvasRenderingContext2D, px: number, py: number, hits: number, maxHits: number): void {

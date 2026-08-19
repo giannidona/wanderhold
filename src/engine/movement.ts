@@ -1,12 +1,17 @@
 import type { GameState, Vector2 } from '../types';
-import { circleRectOverlap, clamp, tileRect } from './collision';
+import { circleRectOverlap, tileRect } from './collision';
 import { PLAYER_RADIUS, TILE_SIZE } from '../constants';
+import { getNodesNearTile } from '../state/village';
 
 const SPEED_TILES_PER_SEC = 4.5;
 const MAX_STEP_PX = 2;
 
 function isBlocked(state: GameState, cx: number, cy: number): boolean {
-  for (const node of state.village.resourceNodes) {
+  const tileX = Math.floor(cx / TILE_SIZE);
+  const tileY = Math.floor(cy / TILE_SIZE);
+  const nearbyNodes = getNodesNearTile(state.village, tileX, tileY);
+
+  for (const node of nearbyNodes) {
     if (node.hitsRemaining <= 0) continue;
     if (circleRectOverlap(cx, cy, PLAYER_RADIUS, tileRect(node.x, node.y, TILE_SIZE))) return true;
   }
@@ -16,23 +21,22 @@ function isBlocked(state: GameState, cx: number, cy: number): boolean {
   return false;
 }
 
+// Mundo infinito: ya no hay un borde de mapa contra el que clampear, el
+// único límite al movimiento es chocar contra un nodo/edificio.
 function moveAxis(state: GameState, total: number, axis: 'x' | 'y'): void {
   if (total === 0) return;
 
-  const bound = state.village.gridSize * TILE_SIZE;
   const steps = Math.max(1, Math.ceil(Math.abs(total) / MAX_STEP_PX));
   const stepAmount = total / steps;
 
   for (let i = 0; i < steps; i++) {
     const candidatePx = axis === 'x' ? state.player.px + stepAmount : state.player.px;
     const candidatePy = axis === 'y' ? state.player.py + stepAmount : state.player.py;
-    const clampedPx = clamp(candidatePx, PLAYER_RADIUS, bound - PLAYER_RADIUS);
-    const clampedPy = clamp(candidatePy, PLAYER_RADIUS, bound - PLAYER_RADIUS);
 
-    if (isBlocked(state, clampedPx, clampedPy)) break;
+    if (isBlocked(state, candidatePx, candidatePy)) break;
 
-    state.player.px = clampedPx;
-    state.player.py = clampedPy;
+    state.player.px = candidatePx;
+    state.player.py = candidatePy;
   }
 }
 

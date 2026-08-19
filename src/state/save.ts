@@ -1,8 +1,9 @@
 import type { GameState } from '../types';
 
-// v6: DungeonRunState ahora requiere `depth` (campo no-opcional, no tiene
-// default seguro vía spread-merge porque `dungeon` se carga entero o null).
-const SAVE_KEY = 'wanderhold-save-v6';
+// v7: VillageState pasó de {gridSize, resourceNodes[]} (grid fijo) a
+// {seed, chunks} (mundo infinito por chunks) — cambio de forma totalmente
+// incompatible con saves anteriores, no hay merge posible.
+const SAVE_KEY = 'wanderhold-save-v7';
 
 export function saveGame(state: GameState): void {
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));

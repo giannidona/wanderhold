@@ -3,6 +3,7 @@ import { generateEnemyQueue } from './enemies';
 import { totalDefense } from '../state/craft';
 import { addResourceCapped } from '../state/buildings';
 import { getResilienceBonus, getStrengthBonus, getVigorBonus, grantXp, XP_PER_WIN } from '../state/progression';
+import { getAllLoadedNodes } from '../state/village';
 
 export const DEFEAT_LOOT_RETENTION = 0.5;
 const NODE_RESPAWN_RATIO = 0.3;
@@ -57,7 +58,7 @@ export function exitDungeon(state: GameState): void {
 }
 
 function respawnResourceNodes(state: GameState): void {
-  const depleted = state.village.resourceNodes.filter((n) => n.hitsRemaining <= 0);
+  const depleted = getAllLoadedNodes(state.village).filter((n) => n.hitsRemaining <= 0);
   const toRespawn = Math.round(depleted.length * NODE_RESPAWN_RATIO);
 
   for (let i = 0; i < toRespawn; i++) {

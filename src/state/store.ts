@@ -5,8 +5,14 @@ import { TILE_SIZE } from '../constants';
 import { initialQuests } from './quests';
 import { createInitialProgression } from './progression';
 
-const GRID_SIZE = 20;
-const START_TILE = { x: 10, y: 10 };
+// Mundo infinito: el punto de partida ya no necesita estar "adentro" de
+// nada, arrancamos en el origen (0,0) — coordenadas limpias para mostrar
+// en el HUD.
+const START_TILE = { x: 0, y: 0 };
+
+function randomSeed(): number {
+  return Math.floor(Math.random() * 0xffffffff);
+}
 
 function createNewState(): GameState {
   const stats: QuestStats = {
@@ -30,7 +36,7 @@ function createNewState(): GameState {
       combat: { maxHp: 20, attack: 4 },
     },
     inventory: { wood: 0, stone: 0, iron: 0 },
-    village: createInitialVillage(GRID_SIZE, START_TILE),
+    village: createInitialVillage(randomSeed(), START_TILE),
     dungeon: null,
     pendingBuildTile: null,
     dungeonDepth: 0,
